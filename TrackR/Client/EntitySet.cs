@@ -18,10 +18,7 @@ namespace TrackR.Client
         /// <summary>
         /// Returns the list of entities in this entity set. For the generic variant use the generic variant of this class.
         /// </summary>
-        public abstract IList EntitiesNonGeneric
-        {
-            get;
-        }
+        public abstract IList EntitiesNonGeneric { get; }
 
         /// <summary>
         /// Adds an entity to the collection. For the generic variant use the generic variant of this class.
@@ -69,13 +66,23 @@ namespace TrackR.Client
 
 
         /// <summary>
+        /// Ctor.
+        /// </summary>
+        public EntitySet()
+        {
+            Entities = new List<EntityTracker<TEntity>>();
+            Type = typeof(TEntity).FullName;
+        }
+
+
+        /// <summary>
         /// Adds an entity to the collection. Non generic variant.
         /// </summary>
         /// <param name="entity"></param>
         public override void AddEntity(object entity)
         {
             var e = (TEntity)entity;
-            var tracker = Entities.First(t => t.Entity.Equals(e));
+            var tracker = Entities.FirstOrDefault(t => t.Entity.Equals(e));
             if (tracker != null)
                 throw new InvalidOperationException("Cannot add entity to set: Entity was already added.");
 
@@ -116,7 +123,7 @@ namespace TrackR.Client
 
             tracker = new EntityTracker<TEntity>(e)
             {
-                State = ChangeState.Unchanged
+                State = ChangeState.Unchanged,
             };
             Entities.Add(tracker);
         }
@@ -133,7 +140,7 @@ namespace TrackR.Client
 
             Entities.Remove(tracker);
         }
-        
+
 
         /// <summary>
         /// Adds an entity to the collection.
@@ -152,7 +159,7 @@ namespace TrackR.Client
         {
             RemoveEntity(entity);
         }
-        
+
         /// <summary>
         /// Start tracking an (attach).
         /// </summary>

@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Remoting;
 using System.Text;
+using System.Threading.Tasks;
 using TrackR.Common;
 
 namespace TrackR.Client
@@ -23,7 +25,7 @@ namespace TrackR.Client
         /// URI to the TrackR Controller.
         /// </summary>
         protected readonly Uri TrackRUri;
-        
+
 
         /// <summary>
         /// Base constructor.
@@ -80,27 +82,37 @@ namespace TrackR.Client
         /// <summary>
         /// Submits all changes.
         /// </summary>
-        public async void SubmitChanges()
+        public async Task SubmitChangesAsync()
         {
-            var changetSet = BuildChangeSet();
-
-            var settings = new JsonSerializerSettings
+            try
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            };
-            var json = JsonConvert.SerializeObject(changetSet, settings);
+                var changetSet = BuildChangeSet();
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8));
-                var content = await result.Content.ReadAsStringAsync();
-
-                if (!result.IsSuccessStatusCode)
+                var settings = new JsonSerializerSettings
                 {
-                    throw new ServerException("Server returned: {0}\n{2}".F(result.StatusCode, content));
+                    TypeNameHandling = TypeNameHandling.All,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+#if DEBUG
+                    Formatting = Formatting.Indented,
+#endif
+                };
+                var json = JsonConvert.SerializeObject(changetSet, settings);
+
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+                    var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
+                    var content = await result.Content.ReadAsStringAsync();
+
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        throw new ServerException("Server returned: {0}\n{2}".F(result.StatusCode, content));
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Debugger.Break();
             }
         }
 
@@ -123,7 +135,7 @@ namespace TrackR.Client
                 ToDelete = ToRemoveSet(toDelete),
             };
         }
-        
+
         /// <summary>
         /// Gets an entity set based on an entity.
         /// </summary>
@@ -139,6 +151,7 @@ namespace TrackR.Client
             {
                 var newSetType = typeof(EntitySet<>).MakeGenericType(entity.GetType());
                 var newSet = (EntitySet)Activator.CreateInstance(newSetType);
+                EntitySets.Add(newSet);
                 return newSet;
             }
 
