@@ -7,17 +7,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR", "TrackR\TrackR.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.OData", "TrackR.OData\TrackR.OData.csproj", "{B5D1A4E0-A370-4FCE-88D1-102760EED29B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDriver", "TestDriver\TestDriver.csproj", "{2A33445F-DB44-4912-BC29-BF2A3E56F5B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDriver", "Test\TestDriver\TestDriver.csproj", "{2A33445F-DB44-4912-BC29-BF2A3E56F5B6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{4B09340A-2A7A-4BBE-B890-ABD072744E6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{452684EA-5AE1-41A7-8934-734D6701F227}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "Test\UnitTests\UnitTests.csproj", "{452684EA-5AE1-41A7-8934-734D6701F227}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{0699DED8-B279-4151-A7BE-AE1ED1C89C5B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "Test\IntegrationTests\IntegrationTests.csproj", "{0699DED8-B279-4151-A7BE-AE1ED1C89C5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSite", "TestSite\TestSite.csproj", "{FF7D40BF-7902-43C2-9646-E9EEE8329182}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSite", "Test\TestSite\TestSite.csproj", "{FF7D40BF-7902-43C2-9646-E9EEE8329182}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestData", "TestData\TestData.csproj", "{E991DEF2-8309-46BA-A4D7-5C03412F2513}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestData", "Test\TestData\TestData.csproj", "{E991DEF2-8309-46BA-A4D7-5C03412F2513}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
