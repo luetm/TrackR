@@ -47,12 +47,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Address.cs" />
-    <Compile Include="Associate.cs" />
-    <Compile Include="Entity.cs" />
-    <Compile Include="Insurance.cs" />
-    <Compile Include="Patient.cs" />
-    <Compile Include="PatientInsurance.cs" />
+    <Compile Include="Builders\AddressBuilder.cs" />
+    <Compile Include="Builders\InsuranceBuilder.cs" />
+    <Compile Include="Builders\PatientBuilder.cs" />
+    <Compile Include="Entities\Address.cs" />
+    <Compile Include="Entities\Associate.cs" />
+    <Compile Include="Builders\BuilderBase.cs" />
+    <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\Insurance.cs" />
+    <Compile Include="Entities\Patient.cs" />
+    <Compile Include="Entities\PatientInsurance.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using TrackR.Common;
 
 namespace TrackR.Client
 {
@@ -103,7 +104,14 @@ namespace TrackR.Client
             {
                 var e = (TEntity)entity;
                 var tracker = Entities.First(t => t.Entity.Equals(e));
-                tracker.State = ChangeState.Deleted;
+                if (tracker.State == ChangeState.Added)
+                {
+                    UnTrackEntity(entity);
+                }
+                else
+                {
+                    tracker.State = ChangeState.Deleted;
+                }
             }
             catch (InvalidOperationException)
             {

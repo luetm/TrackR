@@ -1,6 +1,7 @@
 ﻿using Omu.ValueInjecter;
 using System;
 using System.ComponentModel;
+using TrackR.Common;
 
 namespace TrackR.Client
 {

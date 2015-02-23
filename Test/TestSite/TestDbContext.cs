@@ -5,6 +5,7 @@ using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Linq;
 using System.Web;
 using TestData;
+using TestData.Entities;
 
 namespace TestSite
 {

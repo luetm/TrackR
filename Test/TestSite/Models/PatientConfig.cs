@@ -4,6 +4,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Web;
 using TestData;
+using TestData.Entities;
 
 namespace TestSite.Models
 {
