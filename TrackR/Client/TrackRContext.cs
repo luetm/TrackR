@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -15,8 +16,14 @@ namespace TrackR.Client
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
     /// </summary>
-    public abstract class TrackRContext
+    public abstract class TrackRContext 
     {
+        /// <summary>
+        /// Base uri of the context.
+        /// </summary>
+        public Uri BaseUri { get; protected set; }
+
+        
         /// <summary>
         /// Entity sets contained in this context.
         /// </summary>
@@ -37,6 +44,7 @@ namespace TrackR.Client
             TrackRUri = trackRUri;
             EntitySets = new List<EntitySet>();
         }
+
 
 
         /// <summary>
@@ -67,6 +75,48 @@ namespace TrackR.Client
         {
             var entitySet = GetEntitySet(entity);
             entitySet.TrackEntity(entity);
+
+            var properties = entity.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsValueType || property.PropertyType == typeof(string))
+                    continue;
+
+                var value = property.GetValue(entity);
+                if (value == null)
+                    continue;
+
+                if (value is IEnumerable)
+                {
+                    foreach (var v in value as IEnumerable)
+                    {
+                        if (v is INotifyPropertyChanged)
+                        {
+                            Track(v as INotifyPropertyChanged);
+                        }
+                    }
+                }
+                else
+                {
+                    var v = property.GetValue(entity);
+                    if (v is INotifyPropertyChanged)
+                    {
+                        Track(v as INotifyPropertyChanged);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tracks all entities in the collection.
+        /// </summary>
+        /// <param name="collection"></param>
+        public void TrackMany(IEnumerable<INotifyPropertyChanged> collection)
+        {
+            foreach (var entity in collection)
+            {
+                Track(entity);
+            }
         }
 
         /// <summary>

@@ -1,25 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TrackR.OData;
 using TrackR.OData.v3;
+using Container = TestDriver.TestSiteReference.Container;
 
 namespace TestDriver
 {
-    public class MyODataContext : ODataTrackRContext
+    public class MyODataContext : ODataTrackRContext<Container>
     {
         public MyODataContext()
-            : this(new Uri("http://localhost.fiddler:3663/api/TrackR"))
+            : base(new Uri("http://localhost.fiddler:3663/odata"), new Uri("http://localhost.fiddler:3663/api/TrackR"))
         {
 
-        }
-
-        private MyODataContext(Uri trackRUri)
-            : base(trackRUri)
-        {
         }
 
         protected override int GetId(INotifyPropertyChanged entity)

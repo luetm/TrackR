@@ -75,6 +75,10 @@
     <Compile Include="Common\JsonIdReference.cs" />
     <Compile Include="Common\JsonPropertySet.cs" />
     <Compile Include="Common\JsonTuple.cs" />
+    <Compile Include="DeepCloning\DeepCloneInjection.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartConventionInfo.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartConventionInjection.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartMatchInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\TrackRControllerBase.cs" />
   </ItemGroup>
