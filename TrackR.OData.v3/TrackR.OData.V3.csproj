@@ -7,8 +7,8 @@
     <ProjectGuid>{B5D1A4E0-A370-4FCE-88D1-102760EED29B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TrackR.OData</RootNamespace>
-    <AssemblyName>TrackR.OData</AssemblyName>
+    <RootNamespace>TrackR.OData.v3</RootNamespace>
+    <AssemblyName>TrackR.OData.v3</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

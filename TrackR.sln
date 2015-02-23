@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR", "TrackR\TrackR.csproj", "{AAC679EE-C36C-4000-ADA4-30ACA842ED2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.OData", "TrackR.OData\TrackR.OData.csproj", "{B5D1A4E0-A370-4FCE-88D1-102760EED29B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.OData.v3", "TrackR.OData.v3\TrackR.OData.v3.csproj", "{B5D1A4E0-A370-4FCE-88D1-102760EED29B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDriver", "Test\TestDriver\TestDriver.csproj", "{2A33445F-DB44-4912-BC29-BF2A3E56F5B6}"
 EndProject
