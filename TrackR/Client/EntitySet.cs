@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace TrackR.Client
 {
-
     /// <summary>
     /// Non-Generic version of the EntitySet class.
     /// </summary>
@@ -16,17 +15,36 @@ namespace TrackR.Client
         /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// Returns the list of entities in this entity set. For the generic variant use the generic variant of this class.
+        /// </summary>
         public abstract IList EntitiesNonGeneric
         {
             get;
         }
 
+        /// <summary>
+        /// Adds an entity to the collection. For the generic variant use the generic variant of this class.
+        /// </summary>
+        /// <param name="entity"></param>
         public abstract void AddEntity(object entity);
 
+        /// <summary>
+        /// Removes an entity from the collection. For the generic variant use the generic variant of this class.
+        /// </summary>
+        /// <param name="entity"></param>
         public abstract void RemoveEntity(object entity);
 
+        /// <summary>
+        /// Start tracking an (attach). For the generic variant use the generic variant of this class.
+        /// </summary>
+        /// <param name="entity"></param>
         public abstract void TrackEntity(object entity);
 
+        /// <summary>
+        /// Untracks an entity (detach). For the generic variant use the generic variant of this class.
+        /// </summary>
+        /// <param name="entity"></param>
         public abstract void UnTrackEntity(object entity);
     }
 
@@ -36,14 +54,24 @@ namespace TrackR.Client
     /// <typeparam name="TEntity"></typeparam>
     public class EntitySet<TEntity> : EntitySet
     {
+        /// <summary>
+        /// The entities in this set.
+        /// </summary>
         public List<EntityTracker<TEntity>> Entities { get; set; }
 
+        /// <summary>
+        /// Returns the list of entities in this entity set.
+        /// </summary>
         public override IList EntitiesNonGeneric
         {
             get { return Entities; }
         }
 
 
+        /// <summary>
+        /// Adds an entity to the collection. Non generic variant.
+        /// </summary>
+        /// <param name="entity"></param>
         public override void AddEntity(object entity)
         {
             var e = (TEntity)entity;
@@ -58,6 +86,10 @@ namespace TrackR.Client
             Entities.Add(tracker);
         }
 
+        /// <summary>
+        /// Removes an entity from the collection. Non generic variant.
+        /// </summary>
+        /// <param name="entity"></param>
         public override void RemoveEntity(object entity)
         {
             try
@@ -72,6 +104,10 @@ namespace TrackR.Client
             }
         }
 
+        /// <summary>
+        /// Start tracking an (attach). Non generic variant.
+        /// </summary>
+        /// <param name="entity"></param>
         public override void TrackEntity(object entity)
         {
             var e = (TEntity)entity;
@@ -85,6 +121,10 @@ namespace TrackR.Client
             Entities.Add(tracker);
         }
 
+        /// <summary>
+        /// Untracks an entity (detach). Non generic variant.
+        /// </summary>
+        /// <param name="entity"></param>
         public override void UnTrackEntity(object entity)
         {
             var e = (TEntity)entity;
@@ -93,23 +133,39 @@ namespace TrackR.Client
 
             Entities.Remove(tracker);
         }
+        
 
-
+        /// <summary>
+        /// Adds an entity to the collection.
+        /// </summary>
+        /// <param name="entity"></param>
         public void Add(TEntity entity)
         {
             AddEntity(entity);
         }
 
+        /// <summary>
+        /// Removes an entity from the collection.
+        /// </summary>
+        /// <param name="entity"></param>
         public void Remove(TEntity entity)
         {
             RemoveEntity(entity);
         }
-
+        
+        /// <summary>
+        /// Start tracking an (attach).
+        /// </summary>
+        /// <param name="entity"></param>
         public void Track(TEntity entity)
         {
             TrackEntity(entity);
         }
 
+        /// <summary>
+        /// Untracks an entity (detach).
+        /// </summary>
+        /// <param name="entity"></param>
         public void UnTrack(TEntity entity)
         {
             UnTrackEntity(entity);

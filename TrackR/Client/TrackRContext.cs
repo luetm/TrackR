@@ -9,13 +9,26 @@ using TrackR.Common;
 
 namespace TrackR.Client
 {
+    /// <summary>
+    /// Base class of specific (webapi, odata, ...) TrackR contexts.
+    /// </summary>
     public abstract class TrackRContext
     {
+        /// <summary>
+        /// Entity sets contained in this context.
+        /// </summary>
         public List<EntitySet> EntitySets { get; private set; }
 
+        /// <summary>
+        /// URI to the TrackR Controller.
+        /// </summary>
         protected readonly Uri TrackRUri;
         
 
+        /// <summary>
+        /// Base constructor.
+        /// </summary>
+        /// <param name="trackRUri"></param>
         protected TrackRContext(Uri trackRUri)
         {
             TrackRUri = trackRUri;
@@ -23,30 +36,50 @@ namespace TrackR.Client
         }
 
 
+        /// <summary>
+        /// Adds an entity to the context. Set will be determined automatically.
+        /// </summary>
+        /// <param name="entity"></param>
         public void Add(object entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.AddEntity(entity);
         }
 
+        /// <summary>
+        /// Removes an entity from the context. Set will be determined automatically.
+        /// </summary>
+        /// <param name="entity"></param>
         public void Remove(object entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.RemoveEntity(entity);
         }
 
+        /// <summary>
+        /// Tracks an entity (attach).
+        /// </summary>
+        /// <param name="entity"></param>
         public void Track(object entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.TrackEntity(entity);
         }
 
+        /// <summary>
+        /// Untracks an entity (detach).
+        /// </summary>
+        /// <param name="entity"></param>
         public void UnTrack(object entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.UnTrackEntity(entity);
         }
 
+
+        /// <summary>
+        /// Submits all changes.
+        /// </summary>
         public async void SubmitChanges()
         {
             var changetSet = BuildChangeSet();
@@ -72,6 +105,10 @@ namespace TrackR.Client
         }
 
 
+        /// <summary>
+        /// Compiles all changes from tracked entities.
+        /// </summary>
+        /// <returns></returns>
         private ChangeSet BuildChangeSet()
         {
             var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric.Cast<EntityTracker>()).ToList();
@@ -87,6 +124,11 @@ namespace TrackR.Client
             };
         }
         
+        /// <summary>
+        /// Gets an entity set based on an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         private EntitySet GetEntitySet(object entity)
         {
             if (entity == null)
@@ -104,16 +146,31 @@ namespace TrackR.Client
         }
 
 
+        /// <summary>
+        /// Compiles a list of entities to add.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private List<object> ToAddSet(IEnumerable<EntityTracker> source)
         {
             return source.Select(s => s.GetEntity()).ToList();
         }
 
+        /// <summary>
+        /// Compiles a list of entities to remove.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private List<int> ToRemoveSet(IEnumerable<EntityTracker> source)
         {
             return source.Select(s => GetId(s.GetEntity())).ToList();
         }
 
+        /// <summary>
+        /// Compiles a list of entities to edit.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private List<JsonPropertySet> ToEditSet(IEnumerable<EntityTracker> source)
         {
             return source.Select(entity => new JsonPropertySet
@@ -124,7 +181,12 @@ namespace TrackR.Client
             }).ToList();
         }
 
-
+        /// <summary>
+        /// Gets the delta of two objects.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="original"></param>
+        /// <returns></returns>
         private List<JsonTuple> GetDelta(object entity, object original)
         {
             var properties = entity.GetType().GetProperties()
@@ -144,6 +206,11 @@ namespace TrackR.Client
                 .ToList();
         }
 
+        /// <summary>
+        /// Gets an ID of an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         protected abstract int GetId(object entity);
     }
 }
