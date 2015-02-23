@@ -11,137 +11,22 @@ using System.Web.Http.Results;
 using Newtonsoft.Json;
 using TestData;
 using TrackR.Common;
+using TrackR.Server;
 
 namespace TestSite.Controllers
 {
-    public class TrackRController : ApiController
+    public class TrackRController : TrackRControllerBase
     {
-        private readonly TestDbContext _context;
-        private readonly List<Assembly> _assemblies;
 
-        public TrackRController()
+        protected override DbContext CreateContext()
         {
-            _context = new TestDbContext();
-            _assemblies = new List<Assembly>
-            {
-                typeof(Patient).Assembly,
-                typeof(string).Assembly,
-            };
+            return new TestDbContext();
         }
 
-        public IHttpActionResult Post(ChangeSet changeSet)
+        protected override void AddAssemblies(List<Assembly> assemblies)
         {
-            if (changeSet == null)
-            {
-                return BadRequest();
-            }
-
-            if (changeSet.ToAdd != null)
-            {
-                foreach (var add in changeSet.ToAdd)
-                {
-                    ApplyState(add, EntityState.Detached);
-                }
-            }
-
-            if (changeSet.ToEdit != null)
-            {
-                foreach (var edit in changeSet.ToEdit)
-                {
-                    var type = ResolveType(edit.EntityType);
-                    var set = _context.Set(type);
-                    var entity = set.Find(edit.Id);
-
-                    foreach (var changedProperty in edit.ChangedProperties)
-                    {
-                        var prop = entity.GetType().GetProperty(changedProperty.PropertyName);
-                        var propertyType = ResolveType(changedProperty.PropertyType);
-                        prop.SetValue(entity, JsonConvert.DeserializeObject(changedProperty.JsonValue, propertyType));
-                    }
-
-                    _context.Entry(entity).State = EntityState.Modified;
-                }
-            }
-
-            if (changeSet.ToDelete != null)
-            {
-                foreach (var removeRef in changeSet.ToDelete)
-                {
-                    var type = ResolveType(removeRef.Type);
-                    var set = _context.Set(type);
-                    var entity = set.Find(removeRef.Id);
-                    if (entity == null)
-                    {
-                        var message = new HttpResponseMessage(HttpStatusCode.Gone);
-                        message.Content = new StringContent("{0} ({1})".F(removeRef.Type, removeRef.Id));
-                        return new ResponseMessageResult(message);
-                    }
-
-                    _context.Entry(entity).State = EntityState.Deleted;
-                }
-            }
-            _context.SaveChanges();
-
-            return Ok();
-        }
-
-        private void ApplyState(object o, EntityState idNonZeroState, List<object> processed = null)
-        {
-            if (processed == null)
-            {
-                processed = new List<object>();
-            }
-
-            if (processed.Contains(o))
-                return;
-
-            processed.Add(o);
-
-            if (o == null) return;
-
-            var idProp = o.GetType().GetProperty("Id");
-            if (idProp == null) return;
-
-            if ((int)idProp.GetValue(o) == 0)
-            {
-                _context.Entry(o).State = EntityState.Added;
-            }
-            else
-            {
-                _context.Entry(o).State = idNonZeroState;
-            }
-
-            foreach (var prop in o.GetType().GetProperties())
-            {
-                if (!prop.PropertyType.IsValueType && prop.PropertyType != typeof(string))
-                {
-                    var value = prop.GetValue(o);
-                    if (value == null) continue;
-
-                    if (value is IEnumerable)
-                    {
-                        foreach (var v in value as IEnumerable)
-                        {
-                            ApplyState(v, idNonZeroState, processed);
-                        }
-                    }
-                    else
-                    {
-                        ApplyState(value, idNonZeroState, processed);
-                    }
-                }
-            }
-        }
-
-        private Type ResolveType(string fullType)
-        {
-            foreach (var a in _assemblies)
-            {
-                var type = a.GetType(fullType);
-                if (type != null) return type;
-            }
-
-            throw new TypeLoadException("Could not find type {0}.".F(fullType));
+            base.AddAssemblies(assemblies);
+            assemblies.Add(typeof(Patient).Assembly);
         }
     }
 }
