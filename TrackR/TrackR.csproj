@@ -47,12 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\ChangeState.cs" />
+    <Compile Include="Common\ChangeState.cs" />
     <Compile Include="Client\EntitySet.cs" />
     <Compile Include="Client\EntityTracker.cs" />
     <Compile Include="Client\TrackRContext.cs" />
     <Compile Include="Common\ChangeSet.cs" />
     <Compile Include="Common\Extensions.cs" />
+    <Compile Include="Common\JsonIdReference.cs" />
     <Compile Include="Common\JsonPropertySet.cs" />
     <Compile Include="Common\JsonTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

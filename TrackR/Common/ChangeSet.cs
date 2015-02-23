@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace TrackR.Common
         /// <summary>
         /// Entities that should be added.
         /// </summary>
-        public List<object> ToAdd { get; set; }
+        public List<INotifyPropertyChanged> ToAdd { get; set; }
 
         /// <summary>
         /// Entity-parts that should be edited.
@@ -25,6 +26,6 @@ namespace TrackR.Common
         /// <summary>
         /// Entity-Ids for the entities that should be deleted.
         /// </summary>
-        public List<int> ToDelete { get; set; }
+        public List<JsonIdReference> ToDelete { get; set; }
     }
 }

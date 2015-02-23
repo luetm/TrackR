@@ -25,6 +25,8 @@ namespace TestSite
         {
             modelBuilder.Conventions.Remove<OneToManyCascadeDeleteConvention>();
             modelBuilder.Conventions.Remove<ManyToManyCascadeDeleteConvention>();
+
+            modelBuilder.Configurations.AddFromAssembly(GetType().Assembly);
         }
     }
 }

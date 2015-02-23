@@ -13,7 +13,7 @@ namespace TestSite
         {
             // Web API configuration and services
             var json = config.Formatters.OfType<JsonMediaTypeFormatter>().First();
-            json.SerializerSettings.TypeNameHandling = TypeNameHandling.All;
+            json.SerializerSettings.TypeNameHandling = TypeNameHandling.Objects;
 
             // Web API routes
             config.MapHttpAttributeRoutes();

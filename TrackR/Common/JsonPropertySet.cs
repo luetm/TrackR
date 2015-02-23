@@ -13,16 +13,16 @@ namespace TrackR.Common
         /// <summary>
         /// Fully qualified entity type.
         /// </summary>
-        public string EntityType { get; internal set; }
+        public string EntityType { get; set; }
 
         /// <summary>
         /// Id of the entity to be edited.
         /// </summary>
-        public int Id { get; internal set; }
+        public int Id { get; set; }
 
         /// <summary>
         /// All properties that changed (for avoiding sending entire trees unnecessarily.
         /// </summary>
-        public List<JsonTuple> ChangedProperties { get; internal set; }
+        public List<JsonTuple> ChangedProperties { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace TrackR.Client
@@ -18,7 +18,7 @@ namespace TrackR.Client
         /// <summary>
         /// Returns the list of entities in this entity set. For the generic variant use the generic variant of this class.
         /// </summary>
-        public abstract IList EntitiesNonGeneric { get; }
+        public abstract IEnumerable<EntityTracker> EntitiesNonGeneric { get; }
 
         /// <summary>
         /// Adds an entity to the collection. For the generic variant use the generic variant of this class.
@@ -49,7 +49,7 @@ namespace TrackR.Client
     /// Collets entities of a type.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EntitySet<TEntity> : EntitySet
+    public class EntitySet<TEntity> : EntitySet where TEntity : INotifyPropertyChanged
     {
         /// <summary>
         /// The entities in this set.
@@ -59,7 +59,7 @@ namespace TrackR.Client
         /// <summary>
         /// Returns the list of entities in this entity set.
         /// </summary>
-        public override IList EntitiesNonGeneric
+        public override IEnumerable<EntityTracker> EntitiesNonGeneric
         {
             get { return Entities; }
         }
@@ -118,7 +118,7 @@ namespace TrackR.Client
         public override void TrackEntity(object entity)
         {
             var e = (TEntity)entity;
-            var tracker = Entities.First(t => t.Entity.Equals(e));
+            var tracker = Entities.FirstOrDefault(t => t.Entity.Equals(e));
             if (tracker != null) return;
 
             tracker = new EntityTracker<TEntity>(e)
@@ -135,7 +135,7 @@ namespace TrackR.Client
         public override void UnTrackEntity(object entity)
         {
             var e = (TEntity)entity;
-            var tracker = Entities.First(t => t.Entity.Equals(e));
+            var tracker = Entities.FirstOrDefault(t => t.Entity.Equals(e));
             if (tracker == null) return;
 
             Entities.Remove(tracker);

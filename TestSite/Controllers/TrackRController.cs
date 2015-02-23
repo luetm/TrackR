@@ -5,7 +5,11 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Web.Http;
+using System.Web.Http.Results;
+using Newtonsoft.Json;
+using TestData;
 using TrackR.Common;
 
 namespace TestSite.Controllers
@@ -13,10 +17,16 @@ namespace TestSite.Controllers
     public class TrackRController : ApiController
     {
         private readonly TestDbContext _context;
+        private readonly List<Assembly> _assemblies;
 
         public TrackRController()
         {
             _context = new TestDbContext();
+            _assemblies = new List<Assembly>
+            {
+                typeof(Patient).Assembly,
+                typeof(string).Assembly,
+            };
         }
 
         public IHttpActionResult Post(ChangeSet changeSet)
@@ -26,19 +36,49 @@ namespace TestSite.Controllers
                 return BadRequest();
             }
 
-            foreach (var add in changeSet.ToAdd)
+            if (changeSet.ToAdd != null)
             {
-                ApplyState(add, EntityState.Detached);
+                foreach (var add in changeSet.ToAdd)
+                {
+                    ApplyState(add, EntityState.Detached);
+                }
             }
 
-            foreach (var edit in changeSet.ToEdit)
+            if (changeSet.ToEdit != null)
             {
-                ApplyState(edit, EntityState.Modified);
+                foreach (var edit in changeSet.ToEdit)
+                {
+                    var type = ResolveType(edit.EntityType);
+                    var set = _context.Set(type);
+                    var entity = set.Find(edit.Id);
+
+                    foreach (var changedProperty in edit.ChangedProperties)
+                    {
+                        var prop = entity.GetType().GetProperty(changedProperty.PropertyName);
+                        var propertyType = ResolveType(changedProperty.PropertyType);
+                        prop.SetValue(entity, JsonConvert.DeserializeObject(changedProperty.JsonValue, propertyType));
+                    }
+
+                    _context.Entry(entity).State = EntityState.Modified;
+                }
             }
 
-            foreach (var remove in changeSet.ToDelete)
+            if (changeSet.ToDelete != null)
             {
-                ApplyState(remove, EntityState.Deleted);
+                foreach (var removeRef in changeSet.ToDelete)
+                {
+                    var type = ResolveType(removeRef.Type);
+                    var set = _context.Set(type);
+                    var entity = set.Find(removeRef.Id);
+                    if (entity == null)
+                    {
+                        var message = new HttpResponseMessage(HttpStatusCode.Gone);
+                        message.Content = new StringContent("{0} ({1})".F(removeRef.Type, removeRef.Id));
+                        return new ResponseMessageResult(message);
+                    }
+
+                    _context.Entry(entity).State = EntityState.Deleted;
+                }
             }
             _context.SaveChanges();
 
@@ -52,7 +92,7 @@ namespace TestSite.Controllers
                 processed = new List<object>();
             }
 
-            if (processed.Contains(o)) 
+            if (processed.Contains(o))
                 return;
 
             processed.Add(o);
@@ -62,7 +102,7 @@ namespace TestSite.Controllers
             var idProp = o.GetType().GetProperty("Id");
             if (idProp == null) return;
 
-            if ((int) idProp.GetValue(o) == 0)
+            if ((int)idProp.GetValue(o) == 0)
             {
                 _context.Entry(o).State = EntityState.Added;
             }
@@ -73,7 +113,7 @@ namespace TestSite.Controllers
 
             foreach (var prop in o.GetType().GetProperties())
             {
-                if (!prop.PropertyType.IsValueType && prop.PropertyType != typeof (string))
+                if (!prop.PropertyType.IsValueType && prop.PropertyType != typeof(string))
                 {
                     var value = prop.GetValue(o);
                     if (value == null) continue;
@@ -91,6 +131,17 @@ namespace TestSite.Controllers
                     }
                 }
             }
+        }
+
+        private Type ResolveType(string fullType)
+        {
+            foreach (var a in _assemblies)
+            {
+                var type = a.GetType(fullType);
+                if (type != null) return type;
+            }
+
+            throw new TypeLoadException("Could not find type {0}.".F(fullType));
         }
     }
 }

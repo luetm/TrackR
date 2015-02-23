@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,8 +12,15 @@ namespace TestDriver
     {
         static void Main(string[] args)
         {
-            var runner = new Runner();
-            runner.Run().Wait();
+            try
+            {
+                var runner = new Runner();
+                runner.Run().Wait();
+            }
+            catch (Exception err)
+            {
+                Debugger.Break();
+            }
         }
 
         private class Runner
@@ -23,7 +31,7 @@ namespace TestDriver
 
                 var patient = new Patient
                 {
-                    Id = 1,
+                    Id = 2,
                     LastName = "Schwärzl",
                     FirstName = "Thomas",
                     AddressId = 1,
@@ -41,12 +49,6 @@ namespace TestDriver
                         Id = 1,
                         PatientId = 1,
                         InsuranceId = 1,
-                        Insurance = new Insurance
-                        {
-                            Name = "KSS",
-                            Type = "KVG",
-                            Id = 1,
-                        },
                         InsuranceNumber = "123.456",
                     }
                 },
@@ -67,7 +69,20 @@ namespace TestDriver
                     },
                 };
 
+                //context.Track(patient);
+                patient.FirstName = "Odin";
+
+                //var addr = new Address
+                //{
+                //    Street = "Achstrasse 1",
+                //    City = "Herisau",
+                //    Zip = "9100"
+                //};
+                //context.Add(addr);
+
                 context.Track(patient);
+                context.Remove(patient);
+                
                 await context.SubmitChangesAsync();
             }
         }

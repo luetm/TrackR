@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Omu.ValueInjecter;
+﻿using Omu.ValueInjecter;
+using System;
+using System.ComponentModel;
 
 namespace TrackR.Client
 {
@@ -21,13 +18,13 @@ namespace TrackR.Client
         /// Gets the entity object. For the generic variant use the generic variant of this class.
         /// </summary>
         /// <returns></returns>
-        public abstract object GetEntity();
+        public abstract INotifyPropertyChanged GetEntity();
 
         /// <summary>
         /// Gets the original entity object (unchanged copy). For the generic variant use the generic variant of this class.
         /// </summary>
         /// <returns></returns>
-        public abstract object GetOriginal();
+        public abstract INotifyPropertyChanged GetOriginal();
 
         /// <summary>
         /// Reverts the entity to the original.
@@ -38,7 +35,7 @@ namespace TrackR.Client
     /// <summary>
     /// Wrapper aroudn an entity that tracks its changes.
     /// </summary>
-    public class EntityTracker<TEntity> : EntityTracker
+    public class EntityTracker<TEntity> : EntityTracker where TEntity : INotifyPropertyChanged
     {
         /// <summary>
         /// Gets the entity object.
@@ -58,14 +55,26 @@ namespace TrackR.Client
         public EntityTracker(TEntity entity)
         {
             Entity = entity;
+            Entity.PropertyChanged += OnEntityPropertyChanged;
+
             Original = (TEntity)Activator.CreateInstance(typeof(TEntity)).InjectFrom(entity);
+        }
+
+        /// <summary>
+        /// Used to set modified flag.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            State = ChangeState.Changed;
         }
 
         /// <summary>
         /// Gets the entity object. For the generic variant use the generic variant of this class.
         /// </summary>
         /// <returns></returns>
-        public override object GetEntity()
+        public override INotifyPropertyChanged GetEntity()
         {
             return Entity;
         }
@@ -74,7 +83,7 @@ namespace TrackR.Client
         ///  Gets the original entity object (unchanged copy). For the generic variant use the generic variant of this class.
         /// </summary>
         /// <returns></returns>
-        public override object GetOriginal()
+        public override INotifyPropertyChanged GetOriginal()
         {
             return Original;
         }
@@ -85,6 +94,7 @@ namespace TrackR.Client
         public override void RevertToOriginal()
         {
             Entity.InjectFrom(Original);
+            State = ChangeState.Unchanged;
         }
     }
 }

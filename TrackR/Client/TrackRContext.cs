@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.Remoting;
 using System.Text;
@@ -42,7 +43,7 @@ namespace TrackR.Client
         /// Adds an entity to the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        public void Add(object entity)
+        public void Add(INotifyPropertyChanged entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.AddEntity(entity);
@@ -52,7 +53,7 @@ namespace TrackR.Client
         /// Removes an entity from the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        public void Remove(object entity)
+        public void Remove(INotifyPropertyChanged entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.RemoveEntity(entity);
@@ -62,7 +63,7 @@ namespace TrackR.Client
         /// Tracks an entity (attach).
         /// </summary>
         /// <param name="entity"></param>
-        public void Track(object entity)
+        public void Track(INotifyPropertyChanged entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.TrackEntity(entity);
@@ -72,7 +73,7 @@ namespace TrackR.Client
         /// Untracks an entity (detach).
         /// </summary>
         /// <param name="entity"></param>
-        public void UnTrack(object entity)
+        public void UnTrack(INotifyPropertyChanged entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.UnTrackEntity(entity);
@@ -90,7 +91,7 @@ namespace TrackR.Client
 
                 var settings = new JsonSerializerSettings
                 {
-                    TypeNameHandling = TypeNameHandling.All,
+                    TypeNameHandling = TypeNameHandling.Objects,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 #if DEBUG
                     Formatting = Formatting.Indented,
@@ -106,13 +107,13 @@ namespace TrackR.Client
 
                     if (!result.IsSuccessStatusCode)
                     {
-                        throw new ServerException("Server returned: {0}\n{2}".F(result.StatusCode, content));
+                        throw new ServerException("Server returned: {0}\n{1}".F(result.StatusCode, content));
                     }
                 }
             }
             catch (Exception e)
             {
-                Debugger.Break();
+                throw new WebException("Could not save changes. See inner exception for details.", e);
             }
         }
 
@@ -123,7 +124,7 @@ namespace TrackR.Client
         /// <returns></returns>
         private ChangeSet BuildChangeSet()
         {
-            var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric.Cast<EntityTracker>()).ToList();
+            var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList();
             var toAdd = entities.Where(e => e.State == ChangeState.Added).ToList();
             var toChange = entities.Where(e => e.State == ChangeState.Changed).ToList();
             var toDelete = entities.Where(e => e.State == ChangeState.Deleted).ToList();
@@ -141,7 +142,7 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        private EntitySet GetEntitySet(object entity)
+        private EntitySet GetEntitySet(INotifyPropertyChanged entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -164,7 +165,7 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private List<object> ToAddSet(IEnumerable<EntityTracker> source)
+        private List<INotifyPropertyChanged> ToAddSet(IEnumerable<EntityTracker> source)
         {
             return source.Select(s => s.GetEntity()).ToList();
         }
@@ -174,9 +175,13 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private List<int> ToRemoveSet(IEnumerable<EntityTracker> source)
+        private List<JsonIdReference> ToRemoveSet(IEnumerable<EntityTracker> source)
         {
-            return source.Select(s => GetId(s.GetEntity())).ToList();
+            return source.Select(s => new JsonIdReference
+            {
+                Id = GetId(s.GetEntity()),
+                Type = s.GetEntity().GetType().FullName,
+            }).ToList();
         }
 
         /// <summary>
@@ -188,8 +193,8 @@ namespace TrackR.Client
         {
             return source.Select(entity => new JsonPropertySet
             {
-                Id = GetId(entity),
-                EntityType = entity.GetType().FullName,
+                Id = GetId(entity.GetEntity()),
+                EntityType = entity.GetEntity().GetType().FullName,
                 ChangedProperties = GetDelta(entity.GetEntity(), entity.GetOriginal())
             }).ToList();
         }
@@ -200,30 +205,32 @@ namespace TrackR.Client
         /// <param name="entity"></param>
         /// <param name="original"></param>
         /// <returns></returns>
-        private List<JsonTuple> GetDelta(object entity, object original)
+        private List<JsonTuple> GetDelta(INotifyPropertyChanged entity, INotifyPropertyChanged original)
         {
             var properties = entity.GetType().GetProperties()
                 .Where(t => t.CanRead && t.CanWrite)
                 .Where(t => t.PropertyType.IsValueType || t.PropertyType == typeof(string))
-                .Where(t => t.GetCustomAttributes(true).Any(a => a is JsonIgnoreAttribute))
+                .Where(t => !t.GetCustomAttributes(true).Any(a => a is JsonIgnoreAttribute))
                 .ToList();
 
-            return properties
-                .Where(p => p.GetValue(entity).Equals(p.GetValue(original)))
+            var result = properties
+                .Where(p => !p.GetValue(entity).Equals(p.GetValue(original)))
                 .Select(p => new JsonTuple
                 {
                     PropertyName = p.Name,
-                    PropertyType = p.GetType().FullName,
+                    PropertyType = p.PropertyType.FullName,
                     JsonValue = JsonConvert.SerializeObject(p.GetValue(entity)),
                 })
                 .ToList();
-        }
 
+            return result;
+        }
+        
         /// <summary>
         /// Gets an ID of an entity.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected abstract int GetId(object entity);
+        protected abstract int GetId(INotifyPropertyChanged entity);
     }
 }

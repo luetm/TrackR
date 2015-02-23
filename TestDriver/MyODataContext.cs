@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace TestDriver
         {
         }
 
-        protected override int GetId(object entity)
+        protected override int GetId(INotifyPropertyChanged entity)
         {
             return (int)entity.GetType().GetProperty("Id").GetValue(entity);
         }
