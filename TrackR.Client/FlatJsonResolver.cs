@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using TrackR.Common;
 
-namespace TrackR.Client.Client
+namespace TrackR.Client
 {
     public class FlatJsonResolver : DefaultContractResolver
     {

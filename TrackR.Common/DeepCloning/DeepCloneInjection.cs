@@ -65,8 +65,9 @@ namespace TrackR.Common.DeepCloning
                         {
                             var typeName = o.GetType().Name;
 
-                            // TODO: Deliver data assembly
-                            var dataAssembly = GetType().Assembly;
+                            var dataAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetTypes().Any(t => t != o.GetType() && t.Name == typeName));
+                            if (dataAssembly == null) continue;
+
                             var type = dataAssembly.GetTypes().FirstOrDefault(t => t.Name == typeName);
                             if (type == null) continue;
 

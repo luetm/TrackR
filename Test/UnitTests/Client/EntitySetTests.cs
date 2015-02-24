@@ -2,7 +2,7 @@
 using System.Linq;
 using TestData.Builders;
 using TestData.Entities;
-using TrackR.Client.Client;
+using TrackR.Client;
 using TrackR.Common;
 
 namespace UnitTests.Client

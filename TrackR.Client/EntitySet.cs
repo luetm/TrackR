@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using TrackR.Common;
 
-namespace TrackR.Client.Client
+namespace TrackR.Client
 {
     /// <summary>
     /// Non-Generic version of the EntitySet class.
@@ -44,6 +45,12 @@ namespace TrackR.Client.Client
         /// </summary>
         /// <param name="entity"></param>
         public abstract void UnTrackEntity(object entity);
+
+
+        /// <summary>
+        /// Removes all entities from the set.
+        /// </summary>
+        public abstract void Clear();
     }
 
     /// <summary>
@@ -147,6 +154,14 @@ namespace TrackR.Client.Client
             if (tracker == null) return;
 
             Entities.Remove(tracker);
+        }
+
+        /// <summary>
+        /// Clears all entities from the set.
+        /// </summary>
+        public override void Clear()
+        {
+            Entities.Clear();
         }
 
 

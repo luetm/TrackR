@@ -11,19 +11,19 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TrackR.Common;
 
-namespace TrackR.Client.Client
+namespace TrackR.Client
 {
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
     /// </summary>
-    public abstract class TrackRContext 
+    public abstract class TrackRContext
     {
         /// <summary>
         /// Base uri of the context.
         /// </summary>
         public Uri BaseUri { get; protected set; }
 
-        
+
         /// <summary>
         /// Entity sets contained in this context.
         /// </summary>
@@ -158,13 +158,62 @@ namespace TrackR.Client.Client
 
                     if (!result.IsSuccessStatusCode)
                     {
-                        throw new ServerException("Server returned: {0}\n{1}".F(result.StatusCode, content));
+                        throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, content));
                     }
                 }
             }
             catch (Exception e)
             {
                 throw new WebException("Could not save changes. See inner exception for details.", e);
+            }
+        }
+
+        /// <summary>
+        /// Rejects all changes and reverts to original.
+        /// </summary>
+        public void RejectChanges()
+        {
+            foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric))
+            {
+                if (tracker.State == ChangeState.Unchanged)
+                    continue;
+
+                if (tracker.State == ChangeState.Added)
+                {
+                    Remove(tracker.GetEntity());
+                }
+
+                if (tracker.State == ChangeState.Deleted)
+                {
+                    tracker.State = ChangeState.Changed;
+                }
+
+                if (tracker.State == ChangeState.Changed)
+                {
+                    tracker.RevertToOriginal();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if there were any changes made in the context.
+        /// </summary>
+        /// <returns></returns>
+        public bool HasChanges()
+        {
+            return EntitySets
+                .SelectMany(e => e.EntitiesNonGeneric)
+                .Any(e => e.State != ChangeState.Unchanged);
+        }
+
+        /// <summary>
+        /// Clears all changes.
+        /// </summary>
+        public virtual void Clear()
+        {
+            foreach (var set in EntitySets)
+            {
+                set.Clear();
             }
         }
 
@@ -210,7 +259,7 @@ namespace TrackR.Client.Client
 
             var properties = entity.GetEntity().GetType().GetProperties()
                 .Where(p => !p.PropertyType.IsValueType)
-                .Where(p => p.PropertyType != typeof (string))
+                .Where(p => p.PropertyType != typeof(string))
                 .Where(p => p.CanRead && p.CanWrite);
 
             foreach (var property in properties)
@@ -296,7 +345,7 @@ namespace TrackR.Client.Client
 
             return result;
         }
-        
+
         /// <summary>
         /// Gets an ID of an entity.
         /// </summary>

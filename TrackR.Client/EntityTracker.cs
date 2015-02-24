@@ -3,7 +3,7 @@ using System.ComponentModel;
 using Omu.ValueInjecter;
 using TrackR.Common;
 
-namespace TrackR.Client.Client
+namespace TrackR.Client
 {
     /// <summary>
     /// Wrapper aroudn an entity that tracks its changes.

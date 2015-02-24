@@ -47,10 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\EntitySet.cs" />
-    <Compile Include="Client\EntityTracker.cs" />
-    <Compile Include="Client\FlatJsonResolver.cs" />
-    <Compile Include="Client\TrackRContext.cs" />
+    <Compile Include="EntitySet.cs" />
+    <Compile Include="EntityTracker.cs" />
+    <Compile Include="FlatJsonResolver.cs" />
+    <Compile Include="TrackRContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

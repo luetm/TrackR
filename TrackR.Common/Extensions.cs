@@ -19,7 +19,7 @@ namespace TrackR.Common
         /// <param name="format"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static string F(this string format, params object[] args)
+        public static string FormatStatic(this string format, params object[] args)
         {
             return string.Format(format, args);
         }
@@ -34,17 +34,23 @@ namespace TrackR.Common
             return string.IsNullOrWhiteSpace(input);
         }
 
+        /// <summary>
+        /// Converts an object into a query parameter compatible format (e.g. datetime yyyy-MM-dd)
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public static string ToUriParameter(this object value, string key)
         {
             const string format = "{0}={1}";
             if (value == null)
             {
-                return format.F(key, "NULL");
+                return format.FormatStatic(key, "NULL");
             }
 
             if (value is DateTime)
             {
-                return format.F(key, ((DateTime)value).ToString("yyyy-MM-dd"));
+                return format.FormatStatic(key, ((DateTime)value).ToString("yyyy-MM-dd"));
             }
 
             var array = value as Array;
@@ -56,12 +62,27 @@ namespace TrackR.Common
                 return string.Join("&", parameters);
             }
 
-            return format.F(key, value.ToString());
+            return format.FormatStatic(key, value.ToString());
         }
+
+        /// <summary>
+        /// Used deep injection to inject data into arbitrary objects.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static T Inject<T>(this object value) where T : new()
         {
             return (T)new T().InjectFrom<DeepCloneInjection>(value);
         }
+
+        /// <summary>
+        /// Used deep injection to inject data into arbitrary objects.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="destination"></param>
+        /// <returns></returns>
         public static T Inject<T>(this object value, T destination)
         {
             return (T)destination.InjectFrom<DeepCloneInjection>(value);
@@ -80,5 +101,17 @@ namespace TrackR.Common
                 .Select(o => (T)new T().InjectFrom<DeepCloneInjection>(o))
                 .ToList();
         }
+
+        /// <summary>
+        /// Replaces the First() and FirstOrDefault() for context queries.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static IQueryable<T> FirstQuery<T>(this IQueryable<T> source)
+        {
+            return source.Take(1);
+        }
+        
     }
 }

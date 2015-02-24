@@ -1,4 +1,5 @@
-﻿using Omu.ValueInjecter;
+﻿using Newtonsoft.Json;
+using Omu.ValueInjecter;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,8 +8,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
-using TrackR.Client.Client;
+using TrackR.Client;
 using TrackR.Common;
 using TrackR.Common.DeepCloning;
 using TrackR.OData.v3.Interfaces;
@@ -140,7 +142,7 @@ namespace TrackR.OData.v3
                     }
 
                     var response = result as QueryOperationResponse;
-                    var t = response.Cast<INotifyPropertyChanged>().ToList();
+                    var t = response.Cast<object>().ToList();
                     var v = t.Inject<TEntity>().ToList();
                     TrackMany(v);
                     return v.AsEnumerable();
@@ -307,11 +309,19 @@ namespace TrackR.OData.v3
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".F(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
 
-                var result = await response.Content.ReadAsAsync<IEnumerable<TResult>>();
-                return result.Inject<TResult>();
+                var json = await response.Content.ReadAsStringAsync();
+                var settings = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                };
+
+                var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
+                return result;
             }
         }
 
@@ -334,7 +344,7 @@ namespace TrackR.OData.v3
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".F(response.StatusCode, response.Content.ToString()));
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
                 }
 
                 var result = await response.Content.ReadAsAsync<TResult>();
@@ -353,6 +363,38 @@ namespace TrackR.OData.v3
             if (AuthBehavior != null)
             {
                 AuthBehavior.AddAuthentication(e.RequestMessage);
+            }
+        }
+
+
+        /// <summary>
+        /// Posts an entity to the server.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="entity"></param>
+        /// <param name="entitySet"></param>
+        /// <returns></returns>
+        public async Task PostEntity<TEntity>(TEntity entity, string entitySet)
+        {
+            var uri = ToAbsoluteUri(entitySet, null);
+
+            using (var client = new HttpClient())
+            {
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new OdataContractResolver(),
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                };
+                var json = JsonConvert.SerializeObject(entity, settings);
+
+                client.DefaultRequestHeaders.Add("Accept", "application/json; odata=minimalmetadata");
+                var result = await client.PostAsync(uri, new StringContent(json, Encoding.UTF8, "application/json"));
+
+                if (!result.IsSuccessStatusCode)
+                {
+                    var content = await result.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(result.StatusCode, content));
+                }
             }
         }
 

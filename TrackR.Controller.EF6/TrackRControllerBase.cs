@@ -161,7 +161,7 @@ namespace TrackR.Controller.EF6
                 if (type != null) return type;
             }
 
-            throw new TypeLoadException("Could not find type {0}.".F(fullType));
+            throw new TypeLoadException("Could not find type {0}.".FormatStatic(fullType));
         }
     }
 }
