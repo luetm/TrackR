@@ -4,8 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Omu.ValueInjecter;
-using TrackR.DeepCloning;
-using System.Reflection;
+using TrackR.Common.DeepCloning;
 
 namespace TrackR.Common
 {

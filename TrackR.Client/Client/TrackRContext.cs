@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,9 +8,10 @@ using System.Net.Http;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using TrackR.Common;
 
-namespace TrackR.Client
+namespace TrackR.Client.Client
 {
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
@@ -141,6 +141,7 @@ namespace TrackR.Client
 
                 var settings = new JsonSerializerSettings
                 {
+                    ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 #if DEBUG
@@ -174,17 +175,77 @@ namespace TrackR.Client
         /// <returns></returns>
         private ChangeSet BuildChangeSet()
         {
-            var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList();
-            var toAdd = entities.Where(e => e.State == ChangeState.Added).ToList();
-            var toChange = entities.Where(e => e.State == ChangeState.Changed).ToList();
-            var toDelete = entities.Where(e => e.State == ChangeState.Deleted).ToList();
+            var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric)
+                .Where(e => e.State == ChangeState.Changed || e.State == ChangeState.Added || e.State == ChangeState.Deleted)
+                .ToList();
+
+            var allEntities = EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList();
+
+            var wrappers = new List<EntityWrapper>();
+            foreach (var entity in entities)
+            {
+                BuildWrapper(entity, wrappers, allEntities);
+            }
 
             return new ChangeSet
             {
-                ToAdd = ToAddSet(toAdd),
-                ToEdit = ToEditSet(toChange),
-                ToDelete = ToRemoveSet(toDelete),
+                Entities = wrappers.Where(w => w.ChangeState != ChangeState.Unchanged).ToList(),
             };
+        }
+
+        private void BuildWrapper(EntityTracker entity, List<EntityWrapper> wrappers, List<EntityTracker> allEntities)
+        {
+            if (wrappers.Any(e => e.Guid == entity.Guid))
+                return;
+
+            var wrapper = new EntityWrapper
+            {
+                Entity = entity.GetEntity(),
+                Guid = entity.Guid,
+                ChangeState = entity.State,
+                References = new List<EntityReference>()
+            };
+
+            wrappers.Add(wrapper);
+
+            var properties = entity.GetEntity().GetType().GetProperties()
+                .Where(p => !p.PropertyType.IsValueType)
+                .Where(p => p.PropertyType != typeof (string))
+                .Where(p => p.CanRead && p.CanWrite);
+
+            foreach (var property in properties)
+            {
+                var value = property.GetValue(entity.GetEntity());
+                if (value is IEnumerable)
+                {
+                    foreach (var v in value as IEnumerable)
+                    {
+                        if (allEntities.Any(e => Equals(e.GetEntity(), v)))
+                        {
+                            var tracker = allEntities.First(t => Equals(t.GetEntity(), v));
+                            wrapper.References.Add(new EntityReference
+                            {
+                                PropertyName = property.Name,
+                                Reference = tracker.Guid,
+                            });
+                            BuildWrapper(tracker, wrappers, allEntities);
+                        }
+                    }
+                }
+                else if (allEntities.Any(e => Equals(e.GetEntity(), value)))
+                {
+                    if (allEntities.Any(e => Equals(e.GetEntity(), value)))
+                    {
+                        var tracker = allEntities.First(t => Equals(t.GetEntity(), value));
+                        wrapper.References.Add(new EntityReference
+                        {
+                            PropertyName = property.Name,
+                            Reference = tracker.Guid,
+                        });
+                        BuildWrapper(tracker, wrappers, allEntities);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -207,46 +268,6 @@ namespace TrackR.Client
             }
 
             return entitySet;
-        }
-
-
-        /// <summary>
-        /// Compiles a list of entities to add.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        private List<INotifyPropertyChanged> ToAddSet(IEnumerable<EntityTracker> source)
-        {
-            return source.Select(s => s.GetEntity()).ToList();
-        }
-
-        /// <summary>
-        /// Compiles a list of entities to remove.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        private List<JsonIdReference> ToRemoveSet(IEnumerable<EntityTracker> source)
-        {
-            return source.Select(s => new JsonIdReference
-            {
-                Id = GetId(s.GetEntity()),
-                Type = s.GetEntity().GetType().FullName,
-            }).ToList();
-        }
-
-        /// <summary>
-        /// Compiles a list of entities to edit.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        private List<JsonPropertySet> ToEditSet(IEnumerable<EntityTracker> source)
-        {
-            return source.Select(entity => new JsonPropertySet
-            {
-                Id = GetId(entity.GetEntity()),
-                EntityType = entity.GetEntity().GetType().FullName,
-                ChangedProperties = GetDelta(entity.GetEntity(), entity.GetOriginal())
-            }).ToList();
         }
 
         /// <summary>

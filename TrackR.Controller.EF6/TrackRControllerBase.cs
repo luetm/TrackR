@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -10,7 +11,7 @@ using System.Web.Http.Results;
 using Newtonsoft.Json;
 using TrackR.Common;
 
-namespace TrackR.Server
+namespace TrackR.Controller.EF6
 {
     public abstract class TrackRControllerBase : ApiController
     {
@@ -42,53 +43,66 @@ namespace TrackR.Server
                 return BadRequest();
             }
 
-            if (changeSet.ToAdd != null)
+            // Delete flagged entities
+            var toRemove = changeSet.Entities
+                .Where(e => e.ChangeState == ChangeState.Deleted)
+                .ToList();
+            foreach (var remove in toRemove)
             {
-                foreach (var add in changeSet.ToAdd)
-                {
-                    ApplyState(add, EntityState.Detached);
-                }
+                _context.Entry(remove.Entity).State = EntityState.Deleted;
+            }
+            
+            // Add flagged entities
+            var toAdd = changeSet.Entities
+                .Where(e => e.ChangeState == ChangeState.Added)
+                .ToList();
+            foreach (var add in toAdd)
+            {
+                _context.Entry(add.Entity).State = EntityState.Added;
             }
 
-            if (changeSet.ToEdit != null)
+            // Modify flagged entities
+            var toEdit = changeSet.Entities
+                .Where(e => e.ChangeState == ChangeState.Changed)
+                .ToList();
+            foreach (var edit in toEdit)
             {
-                foreach (var edit in changeSet.ToEdit)
-                {
-                    var type = ResolveType(edit.EntityType);
-                    var set = _context.Set(type);
-                    var entity = set.Find(edit.Id);
-
-                    foreach (var changedProperty in edit.ChangedProperties)
-                    {
-                        var prop = entity.GetType().GetProperty(changedProperty.PropertyName);
-                        var propertyType = ResolveType(changedProperty.PropertyType);
-                        prop.SetValue(entity, JsonConvert.DeserializeObject(changedProperty.JsonValue, propertyType));
-                    }
-
-                    _context.Entry(entity).State = EntityState.Modified;
-                }
+                _context.Entry(edit.Entity).State = EntityState.Modified;
             }
 
-            if (changeSet.ToDelete != null)
+            // Reconstruct object graphs
+            foreach (var wrapper in changeSet.Entities)
             {
-                foreach (var removeRef in changeSet.ToDelete)
-                {
-                    var type = ResolveType(removeRef.Type);
-                    var set = _context.Set(type);
-                    var entity = set.Find(removeRef.Id);
-                    if (entity == null)
-                    {
-                        var message = new HttpResponseMessage(HttpStatusCode.Gone);
-                        message.Content = new StringContent("{0} ({1})".F(removeRef.Type, removeRef.Id));
-                        return new ResponseMessageResult(message);
-                    }
-
-                    _context.Entry(entity).State = EntityState.Deleted;
-                }
+                Reconstruct(wrapper, changeSet.Entities);
             }
+
+            // Save changes
             _context.SaveChanges();
 
             return Ok();
+        }
+
+        private void Reconstruct(EntityWrapper wrapper, List<EntityWrapper> entities)
+        {
+            foreach (var reference in wrapper.References)
+            {
+                var refWrapper = entities.FirstOrDefault(e => e.Guid == reference.Reference);
+                
+                // This reference must have been unchanged
+                if (refWrapper == null) 
+                    continue;
+
+                // Attach
+                var property = wrapper.Entity.GetType().GetProperty(reference.PropertyName);
+                if (wrapper.ChangeState == ChangeState.Deleted)
+                {
+                    property.SetValue(wrapper.Entity, null);
+                }
+                else
+                {
+                    property.SetValue(wrapper.Entity, refWrapper.Entity);
+                }
+            }
         }
 
         private void ApplyState(object o, EntityState idNonZeroState, List<object> processed = null)

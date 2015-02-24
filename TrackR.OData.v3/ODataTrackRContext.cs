@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Omu.ValueInjecter;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Services.Client;
@@ -7,11 +8,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using TrackR.Client;
+using TrackR.Client.Client;
 using TrackR.Common;
-using TrackR.DeepCloning;
+using TrackR.Common.DeepCloning;
 using TrackR.OData.v3.Interfaces;
-using Omu.ValueInjecter;
 
 namespace TrackR.OData.v3
 {

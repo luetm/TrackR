@@ -1,15 +1,20 @@
-﻿using Omu.ValueInjecter;
-using System;
+﻿using System;
 using System.ComponentModel;
+using Omu.ValueInjecter;
 using TrackR.Common;
 
-namespace TrackR.Client
+namespace TrackR.Client.Client
 {
     /// <summary>
     /// Wrapper aroudn an entity that tracks its changes.
     /// </summary>
     public abstract class EntityTracker
     {
+        /// <summary>
+        /// Guid that identifies this entity for the tracker.
+        /// </summary>
+        public Guid Guid { get; set; }
+
         /// <summary>
         /// Current state of the entity.
         /// </summary>
@@ -57,6 +62,7 @@ namespace TrackR.Client
         {
             Entity = entity;
             Entity.PropertyChanged += OnEntityPropertyChanged;
+            Guid = Guid.NewGuid();
 
             Original = (TEntity)Activator.CreateInstance(typeof(TEntity)).InjectFrom(entity);
         }

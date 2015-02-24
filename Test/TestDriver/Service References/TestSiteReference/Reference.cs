@@ -10,7 +10,7 @@
 
 // Original file name:
 // Generation date: 23.02.2015 20:30:05
-namespace TestDriver.TestSiteReference
+namespace TestDriver.Service_References.TestSiteReference
 {
     
     /// <summary>

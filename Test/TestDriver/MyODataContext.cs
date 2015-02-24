@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using TrackR.OData.v3;
-using Container = TestDriver.TestSiteReference.Container;
+using Container = TestDriver.Service_References.TestSiteReference.Container;
 
 namespace TestDriver
 {

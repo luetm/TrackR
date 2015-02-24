@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{452684EA-5AE1-41A7-8934-734D6701F227}</ProjectGuid>
+    <ProjectGuid>{F0E80DFD-8357-4A37-83CE-198065D677BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnitTests</RootNamespace>
-    <AssemblyName>UnitTests</AssemblyName>
+    <RootNamespace>TrackR.Common</RootNamespace>
+    <AssemblyName>TrackR.Common</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    <Reference Include="Omu.ValueInjecter">
+      <HintPath>..\packages\valueinjecter.2.3.3\lib\net35\Omu.ValueInjecter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -42,32 +42,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client\EntitySetTests.cs" />
+    <Compile Include="ChangeSet.cs" />
+    <Compile Include="ChangeState.cs" />
+    <Compile Include="DeepCloning\DeepCloneInjection.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartConventionInfo.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartConventionInjection.cs" />
+    <Compile Include="DeepCloning\SmartConvention\SmartMatchInfo.cs" />
+    <Compile Include="EntityReference.cs" />
+    <Compile Include="EntityWrapper.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="JsonIdReference.cs" />
+    <Compile Include="JsonPropertySet.cs" />
+    <Compile Include="JsonTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Common\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\TrackR.Common\TrackR.Common.csproj">
-      <Project>{F0E80DFD-8357-4A37-83CE-198065D677BB}</Project>
-      <Name>TrackR.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TrackR.OData.v3\TrackR.OData.v3.csproj">
-      <Project>{b5d1a4e0-a370-4fce-88d1-102760eed29b}</Project>
-      <Name>TrackR.OData.V3</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TrackR.Client\TrackR.Client.csproj">
-      <Project>{aac679ee-c36c-4000-ada4-30aca842ed2f}</Project>
-      <Name>TrackR</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestData\TestData.csproj">
-      <Project>{e991def2-8309-46ba-a4d7-5c03412f2513}</Project>
-      <Name>TestData</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -67,16 +67,20 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TrackR\TrackR.csproj">
-      <Project>{aac679ee-c36c-4000-ada4-30aca842ed2f}</Project>
-      <Name>TrackR</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Behaviors\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TrackR.Client\TrackR.Client.csproj">
+      <Project>{AAC679EE-C36C-4000-ADA4-30ACA842ED2F}</Project>
+      <Name>TrackR.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TrackR.Common\TrackR.Common.csproj">
+      <Project>{f0e80dfd-8357-4a37-83ce-198065d677bb}</Project>
+      <Name>TrackR.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

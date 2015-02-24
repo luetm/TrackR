@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Omu.ValueInjecter;
 
-namespace TrackR.DeepCloning.SmartConvention
+namespace TrackR.Common.DeepCloning.SmartConvention
 {
     public class SmartConventionInjection : ValueInjection
     {

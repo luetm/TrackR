@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
 
-namespace TrackR.DeepCloning.SmartConvention
+namespace TrackR.Common.DeepCloning.SmartConvention
 {
     public class SmartConventionInfo
     {

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Omu.ValueInjecter;
-using TrackR.DeepCloning.SmartConvention;
+using TrackR.Common.DeepCloning.SmartConvention;
 
-namespace TrackR.DeepCloning
+namespace TrackR.Common.DeepCloning
 {
     public class DeepCloneInjection : SmartConventionInjection
     {

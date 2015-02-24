@@ -2,7 +2,7 @@
 using System.Data.Entity;
 using System.Reflection;
 using TestData.Entities;
-using TrackR.Server;
+using TrackR.Controller.EF6;
 
 namespace TestSite.Controllers
 {

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using TrackR.Common;
 
-namespace TrackR.Client
+namespace TrackR.Client.Client
 {
     /// <summary>
     /// Non-Generic version of the EntitySet class.
