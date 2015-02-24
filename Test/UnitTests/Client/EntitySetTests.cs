@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System.Linq;
+using TestData;
 using TestData.Builders;
 using TestData.Entities;
 using TrackR.Client;
@@ -22,6 +23,22 @@ namespace UnitTests.Client
             Assert.IsNotNull(sut.Entities);
             Assert.IsNotNull(sut.EntitiesNonGeneric);
             Assert.AreEqual(sut.Type, "TestData.Entities.Patient");
+        }
+
+        [Test]
+        public void Clear_Called_AllEntitiesGone()
+        {
+            // * Arrange
+            var fixture = new Fixture();
+            var sut = fixture.Build();
+
+            // * Act
+            var patients = new PatientBuilder().Get(10);
+            foreach (var p in patients) sut.Add(p);
+            sut.Clear();
+
+            // * Assert
+            Assert.IsFalse(sut.Entities.Any());
         }
 
         #region Generic
@@ -235,18 +252,11 @@ namespace UnitTests.Client
         #endregion
 
 
-        private class Fixture
+        private class Fixture : FixtureBase<EntitySet<Patient>>
         {
-            private EntitySet<Patient> Sut { get; set; }
-
             public Fixture()
             {
                 Sut = new EntitySet<Patient>();
-            }
-
-            public EntitySet<Patient> Build()
-            {
-                return Sut;
             }
 
             public EntitySet BuildNonGeneric()

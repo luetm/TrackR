@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TestData.Builders
 {
-    public abstract class BuilderBase<TEntity, TBuilder> 
+    public abstract class BuilderBase<TEntity, TBuilder>  where TEntity : new()
         where TBuilder : class
     {
         protected TEntity Entity { get; set; }
@@ -24,9 +24,10 @@ namespace TestData.Builders
             var result = new List<TEntity>();
             for (int i = 1; i <= amount; i++)
             {
-                var e = Entity.GetType().GetMethod("Copy").Invoke(Entity, null);
+                var copyMethod = new Func<TEntity, TEntity>(ObjectExtensions.Copy);
+                var e = copyMethod.Invoke(Entity);
                 e.GetType().GetProperty("Id").SetValue(e, i);
-                result.Add((TEntity)e);
+                result.Add(e);
             }
 
             return result;
