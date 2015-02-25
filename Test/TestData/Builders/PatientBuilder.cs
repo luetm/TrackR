@@ -22,7 +22,7 @@ namespace TestData.Builders
             return With(p => p.Address = address);
         }
 
-        public PatientBuilder WithAssociate(string name, string role, Address address = null)
+        public PatientBuilder WithAssociate(string name = "Johann Doch", string role = "Father", Address address = null)
         {
             var addr = address ?? new AddressBuilder().Get();
             return With(a => a.Associate = new Associate
@@ -57,6 +57,12 @@ namespace TestData.Builders
         {
             return WithAssociate("Jason Doe", "Father", new AddressBuilder().Get())
                 .WithPatientInsurance("123.456");
+        }
+
+        public PatientBuilder WithoutAddress()
+        {
+            Entity.Address = null;
+            return this;
         }
     }
 }

@@ -148,7 +148,7 @@ namespace UnitTests.Client
         }
 
         #endregion
-
+        
         #region Non-Generic
 
         [Test]
@@ -250,8 +250,7 @@ namespace UnitTests.Client
         }
 
         #endregion
-
-
+        
         private class Fixture : FixtureBase<EntitySet<Patient>>
         {
             public Fixture()

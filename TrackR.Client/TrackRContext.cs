@@ -23,11 +23,25 @@ namespace TrackR.Client
         /// </summary>
         public Uri BaseUri { get; protected set; }
 
-
         /// <summary>
         /// Entity sets contained in this context.
         /// </summary>
         public List<EntitySet> EntitySets { get; private set; }
+
+        /// <summary>
+        /// Returns true if there were any changes made in the context.
+        /// </summary>
+        /// <returns></returns>
+        public bool HasChanges
+        {
+            get
+            {
+                return EntitySets
+                    .SelectMany(e => e.EntitiesNonGeneric)
+                    .Any(e => e.State != ChangeState.Unchanged);
+            }
+        }
+
 
         /// <summary>
         /// URI to the TrackR Controller.
@@ -42,9 +56,9 @@ namespace TrackR.Client
         protected TrackRContext(Uri trackRUri)
         {
             TrackRUri = trackRUri;
+            BaseUri = new UriBuilder(trackRUri) { Path = "", Query = "" }.Uri;
             EntitySets = new List<EntitySet>();
         }
-
 
 
         /// <summary>
@@ -150,7 +164,7 @@ namespace TrackR.Client
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
-                using (var client = new HttpClient())
+                using (var client = CreateHttpClient())
                 {
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
@@ -173,7 +187,7 @@ namespace TrackR.Client
         /// </summary>
         public void RejectChanges()
         {
-            foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric))
+            foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList())
             {
                 if (tracker.State == ChangeState.Unchanged)
                     continue;
@@ -196,17 +210,6 @@ namespace TrackR.Client
         }
 
         /// <summary>
-        /// Returns true if there were any changes made in the context.
-        /// </summary>
-        /// <returns></returns>
-        public bool HasChanges()
-        {
-            return EntitySets
-                .SelectMany(e => e.EntitiesNonGeneric)
-                .Any(e => e.State != ChangeState.Unchanged);
-        }
-
-        /// <summary>
         /// Clears all changes.
         /// </summary>
         public virtual void Clear()
@@ -215,6 +218,7 @@ namespace TrackR.Client
             {
                 set.Clear();
             }
+            EntitySets.Clear();
         }
 
 
@@ -242,6 +246,12 @@ namespace TrackR.Client
             };
         }
 
+        /// <summary>
+        /// Builds a wrapper from entities (RECURSIVE)
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="wrappers"></param>
+        /// <param name="allEntities"></param>
         private void BuildWrapper(EntityTracker entity, List<EntityWrapper> wrappers, List<EntityTracker> allEntities)
         {
             if (wrappers.Any(e => e.Guid == entity.Guid))
@@ -352,5 +362,15 @@ namespace TrackR.Client
         /// <param name="entity"></param>
         /// <returns></returns>
         protected abstract int GetId(INotifyPropertyChanged entity);
+
+
+        /// <summary>
+        /// For unit testing.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual HttpClient CreateHttpClient()
+        {
+            return new HttpClient();
+        }
     }
 }

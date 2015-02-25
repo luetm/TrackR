@@ -10,7 +10,7 @@ namespace TestData
     {
         protected TSut Sut { get; set; }
 
-        public TSut Build()
+        public virtual TSut Build()
         {
             return Sut;
         }

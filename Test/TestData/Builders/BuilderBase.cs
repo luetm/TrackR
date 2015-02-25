@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Omu.ValueInjecter;
 
 namespace TestData.Builders
 {
@@ -16,16 +17,15 @@ namespace TestData.Builders
 
         public TEntity Get()
         {
-            return Entity;
+            return (TEntity)new TEntity().InjectFrom(Entity);
         }
 
-        public IEnumerable<TEntity> Get(int amount)
+        public virtual IEnumerable<TEntity> Get(int amount)
         {
             var result = new List<TEntity>();
             for (int i = 1; i <= amount; i++)
             {
-                var copyMethod = new Func<TEntity, TEntity>(ObjectExtensions.Copy);
-                var e = copyMethod.Invoke(Entity);
+                var e = Get();
                 e.GetType().GetProperty("Id").SetValue(e, i);
                 result.Add(e);
             }
