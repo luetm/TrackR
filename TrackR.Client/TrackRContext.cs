@@ -176,9 +176,16 @@ namespace TrackR.Client
                     }
                 }
 
-                foreach (var entity in changetSet.Entities)
+                foreach (var wrapper in changetSet.Entities)
                 {
-                    entity.ChangeState = ChangeState.Unchanged;
+                    if (wrapper.ChangeState == ChangeState.Deleted)
+                    {
+                        Remove(wrapper.Entity as INotifyPropertyChanged);
+                    }
+                    else
+                    {
+                        wrapper.ChangeState = ChangeState.Unchanged;
+                    }
                 }
             }
             catch (Exception e)
@@ -332,33 +339,6 @@ namespace TrackR.Client
             }
 
             return entitySet;
-        }
-
-        /// <summary>
-        /// Gets the delta of two objects.
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        private List<JsonTuple> GetDelta(INotifyPropertyChanged entity, INotifyPropertyChanged original)
-        {
-            var properties = entity.GetType().GetProperties()
-                .Where(t => t.CanRead && t.CanWrite)
-                .Where(t => t.PropertyType.IsValueType || t.PropertyType == typeof(string))
-                .Where(t => !t.GetCustomAttributes(true).Any(a => a is JsonIgnoreAttribute))
-                .ToList();
-
-            var result = properties
-                .Where(p => !p.GetValue(entity).Equals(p.GetValue(original)))
-                .Select(p => new JsonTuple
-                {
-                    PropertyName = p.Name,
-                    PropertyType = p.PropertyType.FullName,
-                    JsonValue = JsonConvert.SerializeObject(p.GetValue(entity)),
-                })
-                .ToList();
-
-            return result;
         }
 
         /// <summary>
