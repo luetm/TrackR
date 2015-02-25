@@ -73,11 +73,32 @@ namespace UnitTests.Client
             Assert.AreNotEqual(sut.Original.FirstName, "Ueli");
         }
 
+        [Test]
+        public void EntityChanged_ToAddedState_StaysAdded()
+        {
+            // * Arrange
+            var fixture = new Fixture();
+            var sut = fixture.BuildAdded();
+
+            // * Act
+            sut.Entity.FirstName = "Hedwig";
+
+            // * Assert
+            Assert.AreEqual(ChangeState.Added, sut.State);
+        }
+
+
         private class Fixture : FixtureBase<EntityTracker<Patient>>
         {
             public Fixture(Patient p = null)
             {
                 Sut = new EntityTracker<Patient>(p ?? new PatientBuilder().Get());
+            }
+
+            public EntityTracker<Patient> BuildAdded()
+            {
+                Sut = new EntityTracker<Patient>(Sut.Entity, true);
+                return Sut;
             }
         }
     }

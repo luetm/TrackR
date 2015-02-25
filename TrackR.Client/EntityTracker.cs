@@ -58,11 +58,17 @@ namespace TrackR.Client
         /// Creates a new entity tracker.
         /// </summary>
         /// <param name="entity"></param>
-        public EntityTracker(TEntity entity)
+        /// <param name="added"></param>
+        public EntityTracker(TEntity entity, bool added = false)
         {
             Entity = entity;
             Entity.PropertyChanged += OnEntityPropertyChanged;
             Guid = Guid.NewGuid();
+
+            if (added)
+            {
+                State = ChangeState.Added;
+            }
 
             Original = (TEntity)Activator.CreateInstance(typeof(TEntity)).InjectFrom(entity);
         }
@@ -74,7 +80,10 @@ namespace TrackR.Client
         /// <param name="e"></param>
         private void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            State = ChangeState.Changed;
+            if (State == ChangeState.Unchanged)
+            {
+                State = ChangeState.Changed;
+            }
         }
 
         /// <summary>
