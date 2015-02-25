@@ -24,6 +24,7 @@ namespace TrackR.OData.v3
         /// </summary>
         public TContext QueryContext { get; set; }
 
+
         /// <summary>
         /// Handles different kinds of authentication methods.
         /// </summary>
@@ -382,7 +383,7 @@ namespace TrackR.OData.v3
             {
                 var settings = new JsonSerializerSettings
                 {
-                    ContractResolver = new OdataContractResolver(),
+                    ContractResolver = new ODataContractResolver(),
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);

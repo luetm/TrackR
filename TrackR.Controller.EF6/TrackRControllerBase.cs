@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using System.Web.Http;
-using System.Web.Http.Results;
-using Newtonsoft.Json;
 using TrackR.Common;
 
 namespace TrackR.Controller.EF6
@@ -103,65 +97,6 @@ namespace TrackR.Controller.EF6
                     property.SetValue(wrapper.Entity, refWrapper.Entity);
                 }
             }
-        }
-
-        private void ApplyState(object o, EntityState idNonZeroState, List<object> processed = null)
-        {
-            if (processed == null)
-            {
-                processed = new List<object>();
-            }
-
-            if (processed.Contains(o))
-                return;
-
-            processed.Add(o);
-
-            if (o == null) return;
-
-            var idProp = o.GetType().GetProperty("Id");
-            if (idProp == null) return;
-
-            if ((int)idProp.GetValue(o) == 0)
-            {
-                _context.Entry(o).State = EntityState.Added;
-            }
-            else
-            {
-                _context.Entry(o).State = idNonZeroState;
-            }
-
-            foreach (var prop in o.GetType().GetProperties())
-            {
-                if (!prop.PropertyType.IsValueType && prop.PropertyType != typeof(string))
-                {
-                    var value = prop.GetValue(o);
-                    if (value == null) continue;
-
-                    if (value is IEnumerable)
-                    {
-                        foreach (var v in value as IEnumerable)
-                        {
-                            ApplyState(v, idNonZeroState, processed);
-                        }
-                    }
-                    else
-                    {
-                        ApplyState(value, idNonZeroState, processed);
-                    }
-                }
-            }
-        }
-
-        private Type ResolveType(string fullType)
-        {
-            foreach (var a in _assemblies)
-            {
-                var type = a.GetType(fullType);
-                if (type != null) return type;
-            }
-
-            throw new TypeLoadException("Could not find type {0}.".FormatStatic(fullType));
         }
     }
 }

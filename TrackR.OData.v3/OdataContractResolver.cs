@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace TrackR.OData.v3
 {
-    public class OdataContractResolver : DefaultContractResolver
+    public class ODataContractResolver : DefaultContractResolver
     {
         protected override JsonObjectContract CreateObjectContract(Type objectType)
         {

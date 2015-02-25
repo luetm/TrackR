@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\IAuthBehavior.cs" />
-    <Compile Include="OdataContractResolver.cs" />
+    <Compile Include="ODataContractResolver.cs" />
     <Compile Include="ODataTrackRContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
