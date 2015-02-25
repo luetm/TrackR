@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
@@ -37,6 +39,18 @@ namespace TrackR.Controller.EF6
                 return BadRequest();
             }
 
+            // Reconstruct object graphs
+            foreach (var wrapper in changeSet.Entities)
+            {
+                Reconstruct(wrapper, changeSet.Entities);
+            }
+
+            // Fix collections
+            foreach (var wrapper in changeSet.Entities)
+            {
+                FixCollections(wrapper);
+            }
+
             // Delete flagged entities
             var toRemove = changeSet.Entities
                 .Where(e => e.ChangeState == ChangeState.Deleted)
@@ -45,7 +59,7 @@ namespace TrackR.Controller.EF6
             {
                 _context.Entry(remove.Entity).State = EntityState.Deleted;
             }
-            
+
             // Add flagged entities
             var toAdd = changeSet.Entities
                 .Where(e => e.ChangeState == ChangeState.Added)
@@ -64,12 +78,6 @@ namespace TrackR.Controller.EF6
                 _context.Entry(edit.Entity).State = EntityState.Modified;
             }
 
-            // Reconstruct object graphs
-            foreach (var wrapper in changeSet.Entities)
-            {
-                Reconstruct(wrapper, changeSet.Entities);
-            }
-
             // Save changes
             _context.SaveChanges();
 
@@ -83,7 +91,7 @@ namespace TrackR.Controller.EF6
                 var refWrapper = entities.FirstOrDefault(e => e.Guid == reference.Reference);
                 
                 // This reference must have been unchanged
-                if (refWrapper == null) 
+                if (refWrapper == null || refWrapper.ChangeState == ChangeState.Deleted || wrapper.ChangeState == ChangeState.Deleted)  
                     continue;
 
                 // Attach
@@ -95,6 +103,22 @@ namespace TrackR.Controller.EF6
                 else
                 {
                     property.SetValue(wrapper.Entity, refWrapper.Entity);
+                }
+            }
+        }
+
+        private void FixCollections(EntityWrapper wrapper)
+        {
+            var type = wrapper.Entity.GetType();
+            foreach (var p in type.GetProperties())
+            {
+                if (p.CanRead && p.CanWrite && typeof (ICollection).IsAssignableFrom(p.PropertyType) && !p.PropertyType.IsArray)
+                {
+                    var collection = (IEnumerable)p.GetValue(wrapper.Entity);
+                    if (collection != null && !collection.Cast<object>().Any())
+                    {
+                        p.SetValue(wrapper.Entity, null);
+                    }
                 }
             }
         }

@@ -175,6 +175,11 @@ namespace TrackR.Client
                         throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, content));
                     }
                 }
+
+                foreach (var entity in changetSet.Entities)
+                {
+                    entity.ChangeState = ChangeState.Unchanged;
+                }
             }
             catch (Exception e)
             {

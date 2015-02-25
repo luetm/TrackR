@@ -14,6 +14,7 @@ namespace TrackR.Client
 
             if (prop.PropertyType != typeof(List<EntityWrapper>) &&
                 prop.DeclaringType != typeof(EntityWrapper) &&
+                !prop.PropertyType.IsArray &&
                 prop.PropertyType.IsClass &&
                 prop.PropertyType != typeof(string))
             {
