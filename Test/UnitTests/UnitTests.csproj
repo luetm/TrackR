@@ -58,6 +58,7 @@
     <Compile Include="Client\EntitySetTests.cs" />
     <Compile Include="Client\EntityTrackerTests.cs" />
     <Compile Include="Client\TrackRContextTests.cs" />
+    <Compile Include="Common\ExtensionTests.cs" />
     <Compile Include="FakeHttpMessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

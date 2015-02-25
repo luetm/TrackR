@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +51,11 @@ namespace TrackR.Common
             {
                 return format.FormatStatic(key, ((DateTime)value).ToString("yyyy-MM-dd"));
             }
+            var s = value as string;
+            if (s != null)
+            {
+                return format.FormatStatic(key, Uri.EscapeDataString(s));
+            }
 
             var array = value as Array;
             if (array != null)
@@ -71,7 +75,7 @@ namespace TrackR.Common
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static T Inject<T>(this object value) where T : new()
+        public static T DeepInject<T>(this object value) where T : new()
         {
             return (T)new T().InjectFrom<DeepCloneInjection>(value);
         }
@@ -83,7 +87,7 @@ namespace TrackR.Common
         /// <param name="value"></param>
         /// <param name="destination"></param>
         /// <returns></returns>
-        public static T Inject<T>(this object value, T destination)
+        public static T DeepInject<T>(this object value, T destination)
         {
             return (T)destination.InjectFrom<DeepCloneInjection>(value);
         }
@@ -94,7 +98,7 @@ namespace TrackR.Common
         /// <typeparam name="T">Class to transform the enumerable into. Needs a parameterless constructor.</typeparam>
         /// <param name="source">Source</param>
         /// <returns></returns>
-        public static IEnumerable<T> Inject<T>(this IEnumerable source) where T : new()
+        public static IEnumerable<T> DeepInject<T>(this IEnumerable source) where T : new()
         {
             return source
                 .Cast<object>()

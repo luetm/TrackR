@@ -143,7 +143,7 @@ namespace TrackR.OData.v3
 
                     var response = result as QueryOperationResponse;
                     var t = response.Cast<object>().ToList();
-                    var v = t.Inject<TEntity>().ToList();
+                    var v = t.DeepInject<TEntity>().ToList();
                     TrackMany(v);
                     return v.AsEnumerable();
                 }
@@ -214,7 +214,7 @@ namespace TrackR.OData.v3
 
                     var response = result as QueryOperationResponse;
                     var t = response.Cast<object>().ToList();
-                    var v = t.Inject<TResult>();
+                    var v = t.DeepInject<TResult>();
                     return v;
                 }
             });
