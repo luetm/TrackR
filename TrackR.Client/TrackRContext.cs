@@ -151,8 +151,8 @@ namespace TrackR.Client
         {
             try
             {
+                // Get all pending changes & turn them into JSON
                 var changetSet = BuildChangeSet();
-
                 var settings = new JsonSerializerSettings
                 {
                     ContractResolver = new FlatJsonResolver(),
@@ -161,6 +161,7 @@ namespace TrackR.Client
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
+                // Send the changeset to the server
                 using (var client = CreateHttpClient())
                 {
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
@@ -173,35 +174,8 @@ namespace TrackR.Client
                         throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, content));
                     }
 
-                    var deserializeSettings = new JsonSerializerSettings
-                    {
-                        ContractResolver = new FlatJsonResolver(),
-                        TypeNameHandling = TypeNameHandling.Objects,
-                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    };
-
-                    var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
-                    foreach (var wrapper in updatedChangeSet.Entities)
-                    {
-                        if (wrapper.ChangeState != ChangeState.Deleted)
-                        {
-                            var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
-                            Update(wrapper, tracker);
-                            tracker.UpdateOriginal();
-                        }
-                    }
-                    foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList())
-                    {
-                        if (tracker.State == ChangeState.Deleted)
-                        {
-                            var set = GetEntitySet(tracker.GetEntity());
-                            set.UnTrackEntity(tracker.GetEntity());
-                        }
-                        else
-                        {
-                            tracker.State = ChangeState.Unchanged;
-                        }
-                    }
+                    // Update entity trackers and sets
+                    UpdateEntitySets(content);
                 }
             }
             catch (Exception e)
@@ -209,7 +183,7 @@ namespace TrackR.Client
                 throw new WebException("Could not save changes. See inner exception for details.", e);
             }
         }
-
+        
         /// <summary>
         /// Rejects all changes and reverts to original.
         /// </summary>
@@ -389,7 +363,7 @@ namespace TrackR.Client
             {
                 if (property.CanRead &&
                     property.CanWrite &&
-                    (property.PropertyType.IsValueType || property.PropertyType == typeof(string) || property.PropertyType.IsArray))
+                    (property.PropertyType.IsValueType || property.PropertyType == typeof(string) || property.PropertyType.IsArray || property.PropertyType.Name.Contains("Nullable")))
                 {
 
                     property.SetValue(oldEntity, property.GetValue(updatedEntity));
@@ -407,6 +381,43 @@ namespace TrackR.Client
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             return client;
+        }
+
+        /// <summary>
+        /// Updates the entity set with the updated values from the server.
+        /// </summary>
+        /// <param name="content"></param>
+        private void UpdateEntitySets(string content)
+        {
+            var deserializeSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new FlatJsonResolver(),
+                TypeNameHandling = TypeNameHandling.Objects,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
+
+            var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
+            foreach (var wrapper in updatedChangeSet.Entities)
+            {
+                if (wrapper.ChangeState != ChangeState.Deleted)
+                {
+                    var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
+                    Update(wrapper, tracker);
+                    tracker.UpdateOriginal();
+                }
+            }
+            foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList())
+            {
+                if (tracker.State == ChangeState.Deleted)
+                {
+                    var set = GetEntitySet(tracker.GetEntity());
+                    set.UnTrackEntity(tracker.GetEntity());
+                }
+                else
+                {
+                    tracker.State = ChangeState.Unchanged;
+                }
+            }
         }
     }
 }
