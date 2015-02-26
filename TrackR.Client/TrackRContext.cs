@@ -167,7 +167,10 @@ namespace TrackR.Client
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
 
                     var content = await result.Content.ReadAsStringAsync();
-                    content = content.Substring(1, content.Length - 2).Replace("\\\"", "\"");
+                    if (content.StartsWith("\""))
+                    {
+                        content = content.Substring(1, content.Length - 2).Replace("\\\"", "\"");
+                    }
 
                     if (!result.IsSuccessStatusCode)
                     {
@@ -196,7 +199,7 @@ namespace TrackR.Client
 
                 if (tracker.State == ChangeState.Added)
                 {
-                    Remove(tracker.GetEntity() as TEntityBase);
+                    UnTrack(tracker.GetEntity() as TEntityBase);
                 }
 
                 if (tracker.State == ChangeState.Deleted)
@@ -347,9 +350,9 @@ namespace TrackR.Client
         /// <returns></returns>
         protected abstract void SetId(object entity, int value);
 
-
+        
         /// <summary>
-        /// Updates an entity.
+        /// 
         /// </summary>
         /// <param name="wrapper"></param>
         /// <param name="tracker"></param>

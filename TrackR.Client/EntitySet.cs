@@ -96,7 +96,7 @@ namespace TrackR.Client
 
             tracker = new EntityTracker<TEntity>(e)
             {
-                State = ChangeState.Added
+                State = ChangeState.Added,
             };
             Entities.Add(tracker);
         }

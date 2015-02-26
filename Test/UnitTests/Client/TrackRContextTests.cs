@@ -195,7 +195,9 @@ namespace UnitTests.Client
                 TypeNameHandling = TypeNameHandling.Objects,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             };
-            var json = JsonConvert.SerializeObject(patient, settings);
+
+            var changeSet = new ChangeSet { Entities = new List<EntityWrapper>() };
+            var json = JsonConvert.SerializeObject(changeSet, settings);
 
             var fixture = new Fixture();
             fixture.MockHttpHandler
@@ -206,7 +208,7 @@ namespace UnitTests.Client
             // * Act
             sut.Add(patient);
             await sut.SubmitChangesAsync();
-
+            
             // * Assert
             fixture.MockHttpHandler.Verify(x => x.Send(It.IsAny<HttpRequestMessage>()), Times.Once);
         }
@@ -225,7 +227,7 @@ namespace UnitTests.Client
             // * Act
             sut.Add(patient);
             await sut.SubmitChangesAsync();
-            
+
             // * Assert
         }
 
