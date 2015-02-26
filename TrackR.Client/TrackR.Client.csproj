@@ -49,7 +49,6 @@
   <ItemGroup>
     <Compile Include="EntitySet.cs" />
     <Compile Include="EntityTracker.cs" />
-    <Compile Include="FlatJsonResolver.cs" />
     <Compile Include="TrackRContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

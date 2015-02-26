@@ -393,7 +393,7 @@ namespace UnitTests.Client
 
         #region Fixtures & Fakes
 
-        private class Fixture : FixtureBase<TrackRContext>
+        private class Fixture : FixtureBase<TrackRContext<Entity>>
         {
             public Mock<FakeHttpMessageHandler> MockHttpHandler { get; private set; }
 
@@ -402,7 +402,7 @@ namespace UnitTests.Client
                 MockHttpHandler = new Mock<FakeHttpMessageHandler> { CallBase = true };
             }
 
-            public override TrackRContext Build()
+            public override TrackRContext<Entity> Build()
             {
                 Sut = new TrackRContextFake(new Uri("http://localhost:3663/api/TrackR"), MockHttpHandler);
                 return Sut;
@@ -422,7 +422,7 @@ namespace UnitTests.Client
             }
         }
 
-        private class TrackRContextFake : TrackRContext
+        private class TrackRContextFake : TrackRContext<Entity>
         {
             private readonly Mock<FakeHttpMessageHandler> _clientHandler;
 
@@ -432,9 +432,13 @@ namespace UnitTests.Client
                 _clientHandler = clientHandler;
             }
 
-            protected override int GetId(INotifyPropertyChanged entity)
+            protected override int GetId(object entity)
             {
                 return (int)entity.GetType().GetProperty("Id").GetValue(entity);
+            }
+            protected override void SetId(object entity, int value)
+            {
+                entity.GetType().GetProperty("Id").SetValue(entity, value);
             }
 
             protected override HttpClient CreateHttpClient()

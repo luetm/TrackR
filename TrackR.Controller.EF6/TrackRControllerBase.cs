@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
+using Newtonsoft.Json;
 using TrackR.Common;
 
 namespace TrackR.Controller.EF6
@@ -23,14 +25,6 @@ namespace TrackR.Controller.EF6
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddAssemblies(_assemblies);
         }
-
-        protected abstract DbContext CreateContext();
-
-        protected virtual void AddAssemblies(List<Assembly> assemblies)
-        {
-            _assemblies.Add(typeof(string).Assembly);
-        }
-
 
         public IHttpActionResult Post(ChangeSet changeSet)
         {
@@ -81,17 +75,46 @@ namespace TrackR.Controller.EF6
             // Save changes
             _context.SaveChanges();
 
-            return Ok();
+            // Update entities
+            foreach (var wrapper in changeSet.Entities.ToList())
+            {
+                if (wrapper.ChangeState == ChangeState.Deleted)
+                {
+                    changeSet.Entities.Remove(wrapper);
+                    continue;
+                }
+
+                _context.Entry(wrapper.Entity).Reload();
+            }
+
+
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new FlatJsonResolver(),
+                TypeNameHandling = TypeNameHandling.Objects,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
+            var json = JsonConvert.SerializeObject(changeSet, settings);
+            return Ok(json);
         }
+
+
+        protected abstract DbContext CreateContext();
+
+        protected virtual void AddAssemblies(List<Assembly> assemblies)
+        {
+            _assemblies.Add(typeof(string).Assembly);
+        }
+
 
         private void Reconstruct(EntityWrapper wrapper, List<EntityWrapper> entities)
         {
             foreach (var reference in wrapper.References)
             {
                 var refWrapper = entities.FirstOrDefault(e => e.Guid == reference.Reference);
-                
+
                 // This reference must have been unchanged
-                if (refWrapper == null || refWrapper.ChangeState == ChangeState.Deleted || wrapper.ChangeState == ChangeState.Deleted)  
+                if (refWrapper == null || refWrapper.ChangeState == ChangeState.Deleted || wrapper.ChangeState == ChangeState.Deleted)
                     continue;
 
                 // Attach
@@ -112,7 +135,7 @@ namespace TrackR.Controller.EF6
             var type = wrapper.Entity.GetType();
             foreach (var p in type.GetProperties())
             {
-                if (p.CanRead && p.CanWrite && typeof (ICollection).IsAssignableFrom(p.PropertyType) && !p.PropertyType.IsArray)
+                if (p.CanRead && p.CanWrite && typeof(ICollection).IsAssignableFrom(p.PropertyType) && !p.PropertyType.IsArray)
                 {
                     var collection = (IEnumerable)p.GetValue(wrapper.Entity);
                     if (collection != null && !collection.Cast<object>().Any())

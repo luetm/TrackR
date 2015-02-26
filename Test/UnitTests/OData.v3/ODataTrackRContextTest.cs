@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Data.Services.Client;
 using TestData;
+using TestData.Entities;
 using TrackR.OData.v3;
 
 namespace UnitTests.OData.v3
@@ -24,7 +25,7 @@ namespace UnitTests.OData.v3
         }
 
 
-        private class Fixture : FixtureBase<ODataTrackRContext<FakeDataServiceContext>>
+        private class Fixture : FixtureBase<ODataTrackRContext<FakeDataServiceContext, Entity>>
         {
             public Fixture()
             {
@@ -34,15 +35,19 @@ namespace UnitTests.OData.v3
             }
         }
 
-        private class FakeODataServiceContext : ODataTrackRContext<FakeDataServiceContext>
+        private class FakeODataServiceContext : ODataTrackRContext<FakeDataServiceContext, Entity>
         {
             public FakeODataServiceContext(Uri baseUri, Uri trackRUri) : base(baseUri, trackRUri)
             {
             }
 
-            protected override int GetId(INotifyPropertyChanged entity)
+            protected override int GetId(object entity)
             {
                 return (int) entity.GetType().GetProperty("Id").GetValue(entity);
+            }
+            protected override void SetId(object entity, int value)
+            {
+                entity.GetType().GetProperty("Id").SetValue(entity, value);
             }
         }
     }

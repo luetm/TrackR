@@ -2,9 +2,8 @@
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using TrackR.Common;
 
-namespace TrackR.Client
+namespace TrackR.Common
 {
     public class FlatJsonResolver : DefaultContractResolver
     {

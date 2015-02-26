@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Omu.ValueInjecter;
 using TrackR.Common;
 
 namespace TrackR.Client
@@ -16,7 +16,7 @@ namespace TrackR.Client
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
     /// </summary>
-    public abstract class TrackRContext
+    public abstract class TrackRContext<TEntityBase> where TEntityBase : class
     {
         /// <summary>
         /// Base uri of the context.
@@ -65,7 +65,7 @@ namespace TrackR.Client
         /// Adds an entity to the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        public void Add(INotifyPropertyChanged entity)
+        public void Add(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.AddEntity(entity);
@@ -75,7 +75,7 @@ namespace TrackR.Client
         /// Removes an entity from the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        public void Remove(INotifyPropertyChanged entity)
+        public void Remove(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.RemoveEntity(entity);
@@ -85,7 +85,7 @@ namespace TrackR.Client
         /// Tracks an entity (attach).
         /// </summary>
         /// <param name="entity"></param>
-        public void Track(INotifyPropertyChanged entity)
+        public void Track(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.TrackEntity(entity);
@@ -104,18 +104,18 @@ namespace TrackR.Client
                 {
                     foreach (var v in value as IEnumerable)
                     {
-                        if (v is INotifyPropertyChanged)
+                        if (v is TEntityBase)
                         {
-                            Track(v as INotifyPropertyChanged);
+                            Track(v as TEntityBase);
                         }
                     }
                 }
                 else
                 {
                     var v = property.GetValue(entity);
-                    if (v is INotifyPropertyChanged)
+                    if (v is TEntityBase)
                     {
-                        Track(v as INotifyPropertyChanged);
+                        Track(v as TEntityBase);
                     }
                 }
             }
@@ -125,7 +125,7 @@ namespace TrackR.Client
         /// Tracks all entities in the collection.
         /// </summary>
         /// <param name="collection"></param>
-        public void TrackMany(IEnumerable<INotifyPropertyChanged> collection)
+        public void TrackMany(IEnumerable<TEntityBase> collection)
         {
             foreach (var entity in collection)
             {
@@ -137,7 +137,7 @@ namespace TrackR.Client
         /// Untracks an entity (detach).
         /// </summary>
         /// <param name="entity"></param>
-        public void UnTrack(INotifyPropertyChanged entity)
+        public void UnTrack(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
             entitySet.UnTrackEntity(entity);
@@ -158,33 +158,49 @@ namespace TrackR.Client
                     ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-#if DEBUG
-                    Formatting = Formatting.Indented,
-#endif
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
                 using (var client = CreateHttpClient())
                 {
-                    client.DefaultRequestHeaders.Add("Accept", "application/json");
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
+
                     var content = await result.Content.ReadAsStringAsync();
+                    content = content.Substring(1, content.Length - 2).Replace("\\\"", "\"");
 
                     if (!result.IsSuccessStatusCode)
                     {
                         throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, content));
                     }
-                }
 
-                foreach (var wrapper in changetSet.Entities)
-                {
-                    if (wrapper.ChangeState == ChangeState.Deleted)
+                    var deserializeSettings = new JsonSerializerSettings
                     {
-                        Remove(wrapper.Entity as INotifyPropertyChanged);
+                        ContractResolver = new FlatJsonResolver(),
+                        TypeNameHandling = TypeNameHandling.Objects,
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    };
+
+                    var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
+                    foreach (var wrapper in updatedChangeSet.Entities)
+                    {
+                        if (wrapper.ChangeState != ChangeState.Deleted)
+                        {
+                            var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
+                            Update(wrapper, tracker);
+                            tracker.UpdateOriginal();
+                        }
                     }
-                    else
+                    foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList())
                     {
-                        wrapper.ChangeState = ChangeState.Unchanged;
+                        if (tracker.State == ChangeState.Deleted)
+                        {
+                            var set = GetEntitySet(tracker.GetEntity());
+                            set.UnTrackEntity(tracker.GetEntity());
+                        }
+                        else
+                        {
+                            tracker.State = ChangeState.Unchanged;
+                        }
                     }
                 }
             }
@@ -206,7 +222,7 @@ namespace TrackR.Client
 
                 if (tracker.State == ChangeState.Added)
                 {
-                    Remove(tracker.GetEntity());
+                    Remove(tracker.GetEntity() as TEntityBase);
                 }
 
                 if (tracker.State == ChangeState.Deleted)
@@ -324,7 +340,7 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        private EntitySet GetEntitySet(INotifyPropertyChanged entity)
+        private EntitySet GetEntitySet(object entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -341,12 +357,45 @@ namespace TrackR.Client
             return entitySet;
         }
 
+
         /// <summary>
         /// Gets an ID of an entity.
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected abstract int GetId(INotifyPropertyChanged entity);
+        protected abstract int GetId(object entity);
+
+        /// <summary>
+        /// Sets the id of an entity.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected abstract void SetId(object entity, int value);
+
+
+        /// <summary>
+        /// Updates an entity.
+        /// </summary>
+        /// <param name="wrapper"></param>
+        /// <param name="tracker"></param>
+        private void Update(EntityWrapper wrapper, EntityTracker tracker)
+        {
+            var oldEntity = tracker.GetEntity();
+            var updatedEntity = wrapper.Entity;
+
+            var properties = oldEntity.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.CanRead &&
+                    property.CanWrite &&
+                    (property.PropertyType.IsValueType || property.PropertyType == typeof(string) || property.PropertyType.IsArray))
+                {
+
+                    property.SetValue(oldEntity, property.GetValue(updatedEntity));
+                }
+            }
+        }
 
 
         /// <summary>
@@ -355,7 +404,9 @@ namespace TrackR.Client
         /// <returns></returns>
         protected virtual HttpClient CreateHttpClient()
         {
-            return new HttpClient();
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            return client;
         }
     }
 }

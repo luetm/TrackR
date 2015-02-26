@@ -57,7 +57,7 @@ namespace TrackR.Client
     /// Collets entities of a type.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class EntitySet<TEntity> : EntitySet where TEntity : INotifyPropertyChanged
+    public class EntitySet<TEntity> : EntitySet
     {
         /// <summary>
         /// The entities in this set.

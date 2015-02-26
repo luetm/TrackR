@@ -17,7 +17,9 @@ using TrackR.OData.v3.Interfaces;
 
 namespace TrackR.OData.v3
 {
-    public abstract class ODataTrackRContext<TContext> : TrackRContext where TContext : DataServiceContext
+    public abstract class ODataTrackRContext<TContext, TEntityBase> : TrackRContext<TEntityBase> 
+        where TContext : DataServiceContext
+        where TEntityBase : class
     {
         /// <summary>
         /// Context to create a odata query.
@@ -111,10 +113,10 @@ namespace TrackR.OData.v3
         /// <typeparam name="TEntity">Type of object you want your data injected into. Needs a parameterless constructor.</typeparam>
         /// <param name="query">Query, created by the query context.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(IQueryable query) where TEntity : class, INotifyPropertyChanged, new()
+        public async Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(IQueryable query) where TEntity : class, new()
         {
             var result = await LoadManyNoTrackingAsync<TEntity>(query);
-            TrackMany(result);
+            TrackMany(result.Cast<TEntityBase>());
             return result;
         }
 
@@ -125,7 +127,7 @@ namespace TrackR.OData.v3
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(Uri uri, string method = "GET") where TEntity : class, INotifyPropertyChanged, new()
+        public Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(Uri uri, string method = "GET") where TEntity : class, new()
         {
             return Task.Run(() =>
             {
@@ -145,7 +147,7 @@ namespace TrackR.OData.v3
                     var response = result as QueryOperationResponse;
                     var t = response.Cast<object>().ToList();
                     var v = t.DeepInject<TEntity>().ToList();
-                    TrackMany(v);
+                    TrackMany(v.Cast<TEntityBase>());
                     return v.AsEnumerable();
                 }
             });
@@ -158,7 +160,7 @@ namespace TrackR.OData.v3
         /// <typeparam name="TEntity">Type of object you want your data injected into. Needs a parameterless constructor.</typeparam>
         /// <param name="query">Query, created by the query context.</param>
         /// <returns></returns>
-        public async Task<TEntity> LoadAsync<TEntity>(IQueryable query) where TEntity : class, INotifyPropertyChanged, new()
+        public async Task<TEntity> LoadAsync<TEntity>(IQueryable query) where TEntity : class, new()
         {
             var result = await LoadManyAsync<TEntity>(query);
             return result.FirstOrDefault();
@@ -171,7 +173,7 @@ namespace TrackR.OData.v3
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<TEntity> LoadAsync<TEntity>(Uri uri, string method = "POST") where TEntity : class, INotifyPropertyChanged, new()
+        public async Task<TEntity> LoadAsync<TEntity>(Uri uri, string method = "POST") where TEntity : class, new()
         {
             return (await LoadManyAsync<TEntity>(uri, method)).FirstOrDefault();
         }
@@ -267,12 +269,8 @@ namespace TrackR.OData.v3
             var p = operationParameters.ToArray();
 
             var result = await Task.Run(() => QueryContext.Execute<TResult>(uri, method, false, p));
-            if (typeof(INotifyPropertyChanged).IsAssignableFrom(typeof(TResult)))
-            {
-                var r = result.Cast<INotifyPropertyChanged>().ToList();
-                TrackMany(r);
-                return r.Cast<TResult>();
-            }
+            var r = result.Cast<TEntityBase>().ToList();
+            TrackMany(r);
             return result;
         }
 
