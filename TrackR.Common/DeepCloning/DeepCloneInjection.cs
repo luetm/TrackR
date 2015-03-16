@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning.SmartConvention;
@@ -35,7 +36,7 @@ namespace TrackR.Common.DeepCloning
                 for (var index = 0; index < arr.Length; index++)
                 {
                     var arriVal = arr.GetValue(index);
-                    if (arriVal.GetType().IsValueType || arriVal.GetType() == typeof(string)) continue;
+                    if (arriVal.GetType().IsValueType || arriVal is string) continue;
                     arrayClone.SetValue(Activator.CreateInstance(arriVal.GetType()).InjectFrom<DeepCloneInjection>(arriVal), index);
                 }
                 SetValue(mi.TargetProp, mi.Target, arrayClone);
@@ -49,8 +50,7 @@ namespace TrackR.Common.DeepCloning
                 {
                     var genericArgument = mi.TargetProp.PropertyType.GetGenericArguments()[0];
 
-                    var tlist = typeof(List<>).MakeGenericType(genericArgument);
-
+                    var tlist = typeof(ObservableCollection<>).MakeGenericType(genericArgument);
                     var list = Activator.CreateInstance(tlist);
 
                     if (genericArgument.IsValueType || genericArgument == typeof(string))

@@ -165,8 +165,10 @@ namespace TrackR.Client
                 using (var client = CreateHttpClient())
                 {
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
-
                     var content = await result.Content.ReadAsStringAsync();
+
+                    // Well.. I don't know why but sometimes the stuff comes out as an excaped string
+                    // So lets fix it.
                     if (content.StartsWith("\""))
                     {
                         content = content.Substring(1, content.Length - 2).Replace("\\\"", "\"");

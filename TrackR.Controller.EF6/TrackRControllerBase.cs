@@ -1,12 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
-using Newtonsoft.Json;
 using TrackR.Common;
 
 namespace TrackR.Controller.EF6
@@ -87,7 +85,6 @@ namespace TrackR.Controller.EF6
                 _context.Entry(wrapper.Entity).Reload();
             }
 
-
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new FlatJsonResolver(),
@@ -111,9 +108,10 @@ namespace TrackR.Controller.EF6
         {
             foreach (var reference in wrapper.References)
             {
+                // The reference 
                 var refWrapper = entities.FirstOrDefault(e => e.Guid == reference.Reference);
 
-                // This reference must have been unchanged
+                // This reference must have been unchanged or we're not interested in it due to deletion
                 if (refWrapper == null || refWrapper.ChangeState == ChangeState.Deleted || wrapper.ChangeState == ChangeState.Deleted)
                     continue;
 
@@ -121,10 +119,17 @@ namespace TrackR.Controller.EF6
                 var property = wrapper.Entity.GetType().GetProperty(reference.PropertyName);
                 if (wrapper.ChangeState == ChangeState.Deleted)
                 {
-                    property.SetValue(wrapper.Entity, null);
+                    if (!typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
+                    {
+                        property.SetValue(wrapper.Entity, null);
+                    }
                 }
                 else
                 {
+                    if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && !property.PropertyType.IsArray)
+                    {
+                        continue;
+                    }
                     property.SetValue(wrapper.Entity, refWrapper.Entity);
                 }
             }

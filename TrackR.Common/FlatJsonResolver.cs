@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -11,13 +14,18 @@ namespace TrackR.Common
         {
             JsonProperty prop = base.CreateProperty(member, memberSerialization);
 
-            if (prop.PropertyType != typeof(List<EntityWrapper>) &&
+            if (prop.DeclaringType != typeof(ChangeSet) &&
                 prop.DeclaringType != typeof(EntityWrapper) &&
-                !prop.PropertyType.IsArray &&
-                prop.PropertyType.IsClass &&
-                prop.PropertyType != typeof(string))
+                prop.PropertyType != typeof(string) &&
+                (prop.PropertyType.IsClass || prop.PropertyType.IsInterface) &&
+                !prop.PropertyType.IsArray)
             {
                 prop.ShouldSerialize = obj => false;
+            }
+
+            if (typeof(List<int>).IsArray)
+            {
+                Debugger.Break();
             }
 
             return prop;
