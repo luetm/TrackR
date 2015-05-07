@@ -113,7 +113,7 @@ namespace TrackR.OData.v3
         /// <typeparam name="TEntity">Type of object you want your data injected into. Needs a parameterless constructor.</typeparam>
         /// <param name="query">Query, created by the query context.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(IQueryable query) where TEntity : class, new()
+        public async Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(IQueryable query) where TEntity : class
         {
             var result = await LoadManyNoTrackingAsync<TEntity>(query);
             TrackMany(result.Cast<TEntityBase>());
@@ -127,7 +127,7 @@ namespace TrackR.OData.v3
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(Uri uri, string method = "GET") where TEntity : class, new()
+        public Task<IEnumerable<TEntity>> LoadManyAsync<TEntity>(Uri uri, string method = "GET") where TEntity : class
         {
             return Task.Run(() =>
             {
@@ -160,7 +160,7 @@ namespace TrackR.OData.v3
         /// <typeparam name="TEntity">Type of object you want your data injected into. Needs a parameterless constructor.</typeparam>
         /// <param name="query">Query, created by the query context.</param>
         /// <returns></returns>
-        public async Task<TEntity> LoadAsync<TEntity>(IQueryable query) where TEntity : class, new()
+        public async Task<TEntity> LoadAsync<TEntity>(IQueryable query) where TEntity : class
         {
             var result = await LoadManyAsync<TEntity>(query);
             return result.FirstOrDefault();
@@ -173,7 +173,7 @@ namespace TrackR.OData.v3
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<TEntity> LoadAsync<TEntity>(Uri uri, string method = "POST") where TEntity : class, new()
+        public async Task<TEntity> LoadAsync<TEntity>(Uri uri, string method = "POST") where TEntity : class
         {
             return (await LoadManyAsync<TEntity>(uri, method)).FirstOrDefault();
         }
@@ -185,7 +185,7 @@ namespace TrackR.OData.v3
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public Task<IEnumerable<TResult>> LoadManyNoTrackingAsync<TResult>(IQueryable query) where TResult : class, new()
+        public Task<IEnumerable<TResult>> LoadManyNoTrackingAsync<TResult>(IQueryable query) where TResult : class
         {
             var uri = (Uri)query.GetType().GetProperty("RequestUri").GetValue(query);
             return LoadManyNoTrackingAsync<TResult>(uri, "GET");
@@ -198,7 +198,7 @@ namespace TrackR.OData.v3
         /// <param name="uri"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public Task<IEnumerable<TResult>> LoadManyNoTrackingAsync<TResult>(Uri uri, string method = "POST") where TResult : class, new()
+        public Task<IEnumerable<TResult>> LoadManyNoTrackingAsync<TResult>(Uri uri, string method = "POST") where TResult : class
         {
             return Task.Run(() =>
             {
@@ -229,7 +229,7 @@ namespace TrackR.OData.v3
         /// <typeparam name="TResult"></typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public async Task<TResult> LoadNoTrackingAsync<TResult>(IQueryable query) where TResult : class, new()
+        public async Task<TResult> LoadNoTrackingAsync<TResult>(IQueryable query) where TResult : class
         {
             var result = await LoadManyNoTrackingAsync<TResult>(query);
             return result.FirstOrDefault();
@@ -297,7 +297,7 @@ namespace TrackR.OData.v3
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class, new()
+        public async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class
         {
             using (var client = new HttpClient())
             {
@@ -332,7 +332,7 @@ namespace TrackR.OData.v3
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class, new()
+        public async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class
         {
             using (var client = new HttpClient())
             {
@@ -347,7 +347,7 @@ namespace TrackR.OData.v3
                 }
 
                 var result = await response.Content.ReadAsAsync<TResult>();
-                return (TResult)new TResult().InjectFrom<DeepCloneInjection>(result);
+                return (TResult)(typeof(TResult).GetConstructors().Single(x => !x.GetParameters().Any()).Invoke(null)).InjectFrom<DeepCloneInjection>(result);
             }
         }
 

@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning;
+using TrackR.Common.DeepCloning.SmartConvention;
 
 namespace TrackR.Common
 {
@@ -98,12 +100,54 @@ namespace TrackR.Common
         /// <typeparam name="T">Class to transform the enumerable into. Needs a parameterless constructor.</typeparam>
         /// <param name="source">Source</param>
         /// <returns></returns>
-        public static IEnumerable<T> DeepInject<T>(this IEnumerable source) where T : new()
+        public static IEnumerable<T> DeepInject<T>(this IEnumerable source)
         {
             return source
                 .Cast<object>()
-                .Select(o => (T)new T().InjectFrom<DeepCloneInjection>(o))
+                .Select(o => (T)(CreateNewObject<T>(o).InjectFrom<DeepCloneInjection>(o)))
                 .ToList();
+        }
+
+        private static object CreateNewObject<T>(object o)
+        {
+            try
+            {
+                var targetType = typeof(T);
+                var targetAssembly = targetType.Assembly;
+
+                var sourceType = o.GetType();
+
+                var matchingTypes = targetAssembly.GetTypes()
+                    .Where(x => x.Name == sourceType.Name)
+                    .ToList();
+
+                while (true)
+                {
+                    // No match
+                    if (!matchingTypes.Any())
+                    {
+                        return typeof (T).GetConstructors().Single(x => !x.GetParameters().Any()).Invoke(null);
+                    }
+
+                    // More than 1
+                    if (matchingTypes.Count > 1)
+                    {
+                        matchingTypes = matchingTypes.Where(x => x.Namespace == targetType.Namespace).ToList();
+                    }
+
+                    // Exactly 1
+                    var ctor = matchingTypes.Single().GetConstructors().SingleOrDefault(x => !x.GetParameters().Any());
+                    if (ctor != null)
+                    {
+                        return ctor.Invoke(null);
+                    }
+                    return typeof (T).GetConstructors().Single(x => !x.GetParameters().Any()).Invoke(null);;
+                }
+            }
+            catch (Exception err)
+            {
+                throw new TypeInitializationException(string.Format("Could not create type {0}.", typeof(T).Name), err);
+            }
         }
 
         /// <summary>
@@ -116,6 +160,6 @@ namespace TrackR.Common
         {
             return source.Take(1);
         }
-        
+
     }
 }
