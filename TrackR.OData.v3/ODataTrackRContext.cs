@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Services.Client;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.Edm.Validation;
 using TrackR.Client;
 using TrackR.Common;
 using TrackR.Common.DeepCloning;
@@ -351,6 +353,29 @@ namespace TrackR.OData.v3
             }
         }
 
+        /// <summary>
+        /// Executes a get request without caring about the result.
+        /// </summary>
+        /// <param name="queryPath"></param>
+        /// <param name="parameters"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public async Task HttpGetAsync (string queryPath, object parameters, string method = "GET")
+        {
+            using (var client = new HttpClient())
+            {
+                var uri = ToAbsoluteUri(queryPath, parameters, null);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = await client.GetAsync(uri);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                }
+            }
+        }
+
 
         /// <summary>
         /// Handles authentication and authorization.
@@ -413,6 +438,11 @@ namespace TrackR.OData.v3
                 var strings = properties
                     .Select(prop => prop.GetValue(query).ToUriParameter(prop.Name))
                     .ToList();
+
+                foreach (var s in strings)
+                {
+                    Debugger.Log(1, "Test", s);
+                }
 
                 var queryString = string.Join("&", strings);
                 var builder = new UriBuilder(BaseUri)

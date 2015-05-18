@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Omu.ValueInjecter;
@@ -65,6 +66,7 @@ namespace TrackR.Common
                 var parameters = array
                     .Cast<object>()
                     .Select(o => o.ToUriParameter(key));
+                Debugger.Log(1, "TrackR", string.Join("&", parameters));
                 return string.Join("&", parameters);
             }
 
