@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.OData;
 
-namespace TrackR.OData.v3.Interfaces
+namespace TrackR.Common.Interfaces
 {
     /// <summary>
     /// Handles authentication for different authentication methods (token, basic, ...)
@@ -22,9 +18,9 @@ namespace TrackR.OData.v3.Interfaces
         Task<bool> Login(string username, string password, string url);
 
         /// <summary>
-        /// Used internally to add authentication information to the request (usually the header).
+        /// Gets the header for custom (non odata) header attachment.
         /// </summary>
-        /// <param name="message"></param>
-        void AddAuthentication(IODataRequestMessage message);
+        /// <returns></returns>
+        Tuple<string, string> GetHeader();
     }
 }

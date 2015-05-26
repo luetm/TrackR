@@ -11,11 +11,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Edm.Validation;
 using TrackR.Client;
 using TrackR.Common;
 using TrackR.Common.DeepCloning;
-using TrackR.OData.v3.Interfaces;
+using TrackR.Common.Interfaces;
 
 namespace TrackR.OData.v3
 {
@@ -32,7 +31,7 @@ namespace TrackR.OData.v3
         /// <summary>
         /// Handles different kinds of authentication methods.
         /// </summary>
-        protected IAuthBehavior AuthBehavior { get; set; }
+        public IAuthBehavior AuthBehavior { get; set; }
 
         /// <summary>
         /// Lock to ensure only one operation.
@@ -76,7 +75,7 @@ namespace TrackR.OData.v3
             if (!uri.IsAbsoluteUri)
             {
                 var builder = new UriBuilder(BaseUri);
-                builder.Path += uri.ToString();
+                builder.Path = uri.ToString();
                 uri = builder.Uri;
             }
 
@@ -307,6 +306,12 @@ namespace TrackR.OData.v3
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var uri = ToAbsoluteUri(queryPath, parameters, null);
 
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -342,6 +347,12 @@ namespace TrackR.OData.v3
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -368,6 +379,12 @@ namespace TrackR.OData.v3
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -386,7 +403,8 @@ namespace TrackR.OData.v3
         {
             if (AuthBehavior != null)
             {
-                AuthBehavior.AddAuthentication(e.RequestMessage);
+                var header = AuthBehavior.GetHeader();
+                e.RequestMessage.SetHeader(header.Item1, header.Item2);
             }
         }
 
@@ -412,6 +430,12 @@ namespace TrackR.OData.v3
                 var json = JsonConvert.SerializeObject(entity, settings);
 
                 client.DefaultRequestHeaders.Add("Accept", "application/json; odata=minimalmetadata");
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
                 var result = await client.PostAsync(uri, new StringContent(json, Encoding.UTF8, "application/json"));
 
                 if (!result.IsSuccessStatusCode)
