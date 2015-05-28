@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Luna.Common.Cloning.SmartConvention;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning.SmartConvention;
 

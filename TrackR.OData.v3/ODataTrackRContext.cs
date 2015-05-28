@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TrackR.Client;
@@ -458,7 +459,7 @@ namespace TrackR.OData.v3
         {
             if (query != null)
             {
-                var properties = query.GetProps().Cast<PropertyDescriptor>().ToList();
+                var properties = query.GetProps().ToList();
                 var strings = properties
                     .Select(prop => prop.GetValue(query).ToUriParameter(prop.Name))
                     .ToList();

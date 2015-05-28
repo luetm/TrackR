@@ -1,10 +1,15 @@
-﻿using System;
+﻿using Omu.ValueInjecter;
+using Omu.ValueInjecter.Injections;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Omu.ValueInjecter;
+using System.Data.Services.Client;
+using System.Linq;
+using System.Reflection;
+using TrackR.Common.DeepCloning.SmartConvention;
 
-namespace TrackR.Common.DeepCloning.SmartConvention
+namespace Luna.Common.Cloning.SmartConvention
 {
     public class SmartConventionInjection : ValueInjection
     {
@@ -15,12 +20,25 @@ namespace TrackR.Common.DeepCloning.SmartConvention
 
         private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<KeyValuePair<Type, Type>, Path>> WasLearned = new ConcurrentDictionary<Type, ConcurrentDictionary<KeyValuePair<Type, Type>, Path>>();
 
-        protected virtual void SetValue(PropertyDescriptor prop, object component, object value)
+        protected virtual void SetValue(PropertyInfo prop, object component, object value)
         {
+            if (!prop.CanWrite)
+                return;
+
+            if (prop.PropertyType.GenericTypeArguments.Any())
+            {
+                var typeArg = prop.PropertyType.GenericTypeArguments[0];
+                var type = typeof(DataServiceCollection<>).MakeGenericType(typeArg);
+                if (prop.PropertyType == type)
+                {
+                    return;
+                }
+            }
             prop.SetValue(component, value);
+
         }
 
-        protected virtual object GetValue(PropertyDescriptor prop, object component)
+        protected virtual object GetValue(PropertyInfo prop, object component)
         {
             return prop.GetValue(component);
         }
@@ -38,13 +56,13 @@ namespace TrackR.Common.DeepCloning.SmartConvention
         private Path Learn(object source, object target)
         {
             Path path = null;
-            var sourceProps = source.GetProps();
-            var targetProps = target.GetProps();
+            var sourceProps = TypeDescriptor.GetProperties(source);
+            var targetProps = TypeDescriptor.GetProperties(target);
             var smartConventionInfo = new SmartConventionInfo
-                {
-                    SourceType = source.GetType(),
-                    TargetType = target.GetType()
-                };
+            {
+                SourceType = source.GetType(),
+                TargetType = target.GetType()
+            };
 
             for (var i = 0; i < sourceProps.Count; i++)
             {
@@ -59,9 +77,12 @@ namespace TrackR.Common.DeepCloning.SmartConvention
                     if (!Match(smartConventionInfo)) continue;
                     if (path == null)
                         path = new Path
+                        {
+                            MatchingProps = new Dictionary<string, string>
                             {
-                                MatchingProps = new Dictionary<string, string> { { smartConventionInfo.SourceProp.Name, smartConventionInfo.TargetProp.Name } }
-                            };
+                                { smartConventionInfo.SourceProp.Name, smartConventionInfo.TargetProp.Name }
+                            }
+                        };
                     else path.MatchingProps.Add(smartConventionInfo.SourceProp.Name, smartConventionInfo.TargetProp.Name);
                 }
             }
@@ -81,15 +102,15 @@ namespace TrackR.Common.DeepCloning.SmartConvention
 
             foreach (var pair in path.MatchingProps)
             {
-                var sourceProp = sourceProps.GetByName(pair.Key);
-                var targetProp = targetProps.GetByName(pair.Value);
+                var sourceProp = sourceProps.FirstOrDefault(x => x.Name == pair.Key);
+                var targetProp = targetProps.FirstOrDefault(x => x.Name == pair.Value);
                 ExecuteMatch(new SmartMatchInfo
-                    {
-                        Source = source, 
-                        Target = target, 
-                        SourceProp = sourceProp, 
-                        TargetProp = targetProp
-                    });
+                {
+                    Source = source,
+                    Target = target,
+                    SourceProp = sourceProp,
+                    TargetProp = targetProp
+                });
             }
         }
     }
