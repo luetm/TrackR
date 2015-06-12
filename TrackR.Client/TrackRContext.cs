@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Omu.ValueInjecter;
 using TrackR.Common;
+using TrackR.Common.Interfaces;
 
 namespace TrackR.Client
 {
@@ -41,6 +42,11 @@ namespace TrackR.Client
                     .Any(e => e.State != ChangeState.Unchanged);
             }
         }
+
+        /// <summary>
+        /// Handles different kinds of authentication methods.
+        /// </summary>
+        public IAuthBehavior AuthBehavior { get; set; }
 
 
         /// <summary>
@@ -157,13 +163,19 @@ namespace TrackR.Client
                 {
                     ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
                 // Send the changeset to the server
                 using (var client = CreateHttpClient())
                 {
+                    if (AuthBehavior != null)
+                    {
+                        var authHeader = AuthBehavior.GetHeader();
+                        client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                    }
+
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
                     var content = await result.Content.ReadAsStringAsync();
 
@@ -398,7 +410,7 @@ namespace TrackR.Client
             {
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                PreserveReferencesHandling = PreserveReferencesHandling.All,
             };
 
             var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);

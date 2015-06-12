@@ -1,15 +1,14 @@
-﻿using Omu.ValueInjecter;
-using Omu.ValueInjecter.Injections;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Services.Client;
 using System.Linq;
 using System.Reflection;
-using TrackR.Common.DeepCloning.SmartConvention;
+using Omu.ValueInjecter;
+using Omu.ValueInjecter.Injections;
 
-namespace Luna.Common.Cloning.SmartConvention
+namespace TrackR.Common.DeepCloning.SmartConvention
 {
     public class SmartConventionInjection : ValueInjection
     {

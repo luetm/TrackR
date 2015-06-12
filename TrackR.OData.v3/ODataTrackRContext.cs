@@ -28,12 +28,6 @@ namespace TrackR.OData.v3
         /// </summary>
         public TContext QueryContext { get; set; }
 
-
-        /// <summary>
-        /// Handles different kinds of authentication methods.
-        /// </summary>
-        public IAuthBehavior AuthBehavior { get; set; }
-
         /// <summary>
         /// Lock to ensure only one operation.
         /// </summary>
@@ -51,6 +45,7 @@ namespace TrackR.OData.v3
             var ctor = typeof(TContext).GetConstructors().First();
             BaseUri = baseUri;
             QueryContext = (TContext)ctor.Invoke(new object[] { BaseUri });
+            QueryContext.MergeOption = MergeOption.NoTracking;
 
             // Authentication
             QueryContext.SendingRequest2 += OnSendingRequest;
@@ -323,7 +318,7 @@ namespace TrackR.OData.v3
                 var json = await response.Content.ReadAsStringAsync();
                 var settings = new JsonSerializerSettings
                 {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                 };
 
@@ -426,7 +421,7 @@ namespace TrackR.OData.v3
                 var settings = new JsonSerializerSettings
                 {
                     ContractResolver = new ODataContractResolver(),
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

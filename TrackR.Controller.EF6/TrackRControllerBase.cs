@@ -89,7 +89,8 @@ namespace TrackR.Controller.EF6
             {
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                PreserveReferencesHandling = PreserveReferencesHandling.All, 
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
             };
             var json = JsonConvert.SerializeObject(changeSet, settings);
             return Ok(json);
