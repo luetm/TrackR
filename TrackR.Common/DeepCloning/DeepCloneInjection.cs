@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Newtonsoft.Json;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning.SmartConvention;
 
@@ -17,6 +18,11 @@ namespace TrackR.Common.DeepCloning
 
         protected override void ExecuteMatch(SmartMatchInfo mi)
         {
+            if (mi.SourceProp.GetCustomAttributes(true).Any(a => a is JsonIgnoreAttribute))
+            {
+                return;
+            }
+
             var sourceVal = GetValue(mi.SourceProp, mi.Source);
             if (sourceVal == null) return;
 
@@ -55,8 +61,11 @@ namespace TrackR.Common.DeepCloning
 
                     if (genericArgument.IsValueType || genericArgument == typeof(string))
                     {
-                        var addRange = tlist.GetMethod("AddRange");
-                        addRange.Invoke(list, new[] { sourceVal });
+                        var addRange = tlist.GetMethod("Add");
+                        foreach (object o in (IEnumerable)sourceVal)
+                        {
+                            addRange.Invoke(list, new[] { o });
+                        }
                     }
                     else if (genericArgument.IsAbstract)
                     {

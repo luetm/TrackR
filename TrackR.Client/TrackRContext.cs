@@ -94,6 +94,11 @@ namespace TrackR.Client
         public void Track(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
+            var id = GetId(entity);
+
+            if (entitySet.EntitiesNonGeneric.Any(e => GetId(entity) == id))
+                return;
+                 
             entitySet.TrackEntity(entity);
 
             var properties = entity.GetType().GetProperties();

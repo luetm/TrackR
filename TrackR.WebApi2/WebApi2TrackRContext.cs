@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Omu.ValueInjecter;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using TrackR.Client;
 using TrackR.Common;
-using TrackR.Common.DeepCloning;
 using TrackR.Common.Interfaces;
 
 namespace TrackR.WebApi2
@@ -81,9 +78,8 @@ namespace TrackR.WebApi2
         /// <typeparam name="TResult"></typeparam>
         /// <param name="queryPath"></param>
         /// <param name="parameters"></param>
-        /// <param name="method"></param>
         /// <returns></returns>
-        private async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET")
+        private async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters)
         {
             using (var client = new HttpClient())
             {
@@ -107,11 +103,19 @@ namespace TrackR.WebApi2
                 var json = await response.Content.ReadAsStringAsync();
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                     TypeNameHandling = TypeNameHandling.Objects,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
+                foreach (var r in result)
+                {
+                    if (r is TEntityBase)
+                    {
+                        Track(r as TEntityBase);
+                    }
+                }
+                
                 return result;
             }
         }
@@ -122,9 +126,8 @@ namespace TrackR.WebApi2
         /// <typeparam name="TResult"></typeparam>
         /// <param name="queryPath"></param>
         /// <param name="parameters"></param>
-        /// <param name="method"></param>
         /// <returns></returns>
-        private async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET")
+        private async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters)
         {
             using (var client = new HttpClient())
             {
@@ -144,8 +147,19 @@ namespace TrackR.WebApi2
                     throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
                 }
 
-                var result = await response.Content.ReadAsAsync<TResult>();
-                return (TResult)(typeof(TResult).GetConstructors().Single(x => !x.GetParameters().Any()).Invoke(null)).InjectFrom<DeepCloneInjection>(result);
+                var json = await response.Content.ReadAsStringAsync();
+                var settings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                };
+
+                var result = JsonConvert.DeserializeObject<TResult>(json, settings);
+                if (result is TEntityBase)
+                {
+                    Track(result as TEntityBase);
+                }
+                return result;
             }
         }
 
@@ -275,7 +289,7 @@ namespace TrackR.WebApi2
             {
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 
