@@ -2,6 +2,7 @@
 using Omu.ValueInjecter;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -82,7 +83,7 @@ namespace TrackR.WebApi2
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET")
+        private async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET")
         {
             using (var client = new HttpClient())
             {
@@ -123,7 +124,7 @@ namespace TrackR.WebApi2
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET")
+        private async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET")
         {
             using (var client = new HttpClient())
             {
@@ -149,34 +150,18 @@ namespace TrackR.WebApi2
         }
 
         /// <summary>
-        /// Executes a get request without caring about the result.
+        /// Gets a TResult from a specified uri.
         /// </summary>
-        /// <param name="queryPath"></param>
-        /// <param name="parameters"></param>
-        /// <param name="method"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="parameter"></param>
         /// <returns></returns>
-        public async Task HttpGetAsync(string queryPath, object parameters, string method = "GET")
+        public Task<TResult> GetAsync<TResult>(QueryParameter parameter)
         {
-            using (var client = new HttpClient())
-            {
-                var uri = ToAbsoluteUri(queryPath, parameters, null);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
 
-                if (AuthBehavior != null)
-                {
-                    var authHeader = AuthBehavior.GetHeader();
-                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
-                }
-
-                var response = await client.GetAsync(uri);
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
-                }
-            }
+            return HttpGetAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
-
 
         /// <summary>
         /// Gets a set of TResult from a specified uri.
@@ -184,26 +169,12 @@ namespace TrackR.WebApi2
         /// <typeparam name="TResult"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public Task<IEnumerable<TResult>> GetMany<TResult>(QueryParameter parameter)
+        public Task<IEnumerable<TResult>> GetManyAsync<TResult>(QueryParameter parameter)
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
 
-            return HttpGetManyAsync<TResult>(parameter.Path, parameter.Parameters);
-        }
-
-        /// <summary>
-        /// Gets a TResult from a specified uri.
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="parameter"></param>
-        /// <returns></returns>
-        public Task<TResult> Get<TResult>(QueryParameter parameter)
-        {
-            if (parameter == null)
-                throw new ArgumentNullException("parameter");
-
-            return HttpGetAsync<TResult>(parameter.Path, parameter.Parameters);
+            return HttpGetManyAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
 
         /// <summary>
@@ -248,12 +219,45 @@ namespace TrackR.WebApi2
         /// <param name="parameter"></param>
         /// <param name="verb"></param>
         /// <returns></returns>
-        public Task ExecuteAsync(QueryParameter parameter, string verb = "GET")
+        public async Task ExecuteAsync(QueryParameter parameter, string verb = "GET")
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
 
-            return HttpGetAsync(parameter.Path, parameter.Parameters, verb);
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
+                var method = StringToHttpMethod(verb);
+                var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
+                var message = new HttpRequestMessage(method, uri);
+
+                if (verb != "GET")
+                {
+                    if (parameter.BodyKeyValueStore != null)
+                    {
+                        var json = JsonConvert.SerializeObject(parameter.BodyKeyValueStore);
+                        message.Content = new StringContent(json);
+                    }
+                    if (parameter.BodyRaw != null)
+                    {
+                        message.Content = new StringContent(parameter.BodyRaw);
+                    }
+                }
+                
+                var response = await client.SendAsync(message);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                }
+            }
         }
 
         /// <summary>
@@ -292,6 +296,7 @@ namespace TrackR.WebApi2
             }
         }
 
+
         /// <summary>
         /// Converts to an absolute uri.
         /// </summary>
@@ -299,7 +304,7 @@ namespace TrackR.WebApi2
         /// <param name="query"></param>
         /// <param name="basePath"></param>
         /// <returns></returns>
-        public Uri ToAbsoluteUri(string path, object query, string basePath = "odata")
+        public Uri ToAbsoluteUri(string path, object query, string basePath = "api")
         {
             if (query != null)
             {
@@ -338,6 +343,44 @@ namespace TrackR.WebApi2
                 }
                 return builder.Uri;
             }
+        }
+        
+        /// <summary>
+        /// Converts a string to the HttpMethod enum.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <returns></returns>
+        private static HttpMethod StringToHttpMethod(string verb)
+        {
+            HttpMethod method;
+            switch (verb)
+            {
+                case "GET":
+                    method = HttpMethod.Get;
+                    break;
+                case "POST":
+                    method = HttpMethod.Post;
+                    break;
+                case "HEAD":
+                    method = HttpMethod.Head;
+                    break;
+                case "DELETE":
+                    method = HttpMethod.Delete;
+                    break;
+                case "OPTIONS":
+                    method = HttpMethod.Options;
+                    break;
+                case "PUT":
+                    method = HttpMethod.Put;
+                    break;
+                case "TRACE":
+                    method = HttpMethod.Trace;
+                    break;
+                default:
+                    method = HttpMethod.Get;
+                    break;
+            }
+            return method;
         }
     }
 }
