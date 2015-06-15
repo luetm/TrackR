@@ -82,7 +82,7 @@ namespace TrackR.WebApi2
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class
+        public async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters, string method = "GET")
         {
             using (var client = new HttpClient())
             {
@@ -123,7 +123,7 @@ namespace TrackR.WebApi2
         /// <param name="parameters"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET") where TResult : class
+        public async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters, string method = "GET")
         {
             using (var client = new HttpClient())
             {
@@ -177,6 +177,84 @@ namespace TrackR.WebApi2
             }
         }
 
+
+        /// <summary>
+        /// Gets a set of TResult from a specified uri.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public Task<IEnumerable<TResult>> GetMany<TResult>(QueryParameter parameter)
+        {
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
+
+            return HttpGetManyAsync<TResult>(parameter.Path, parameter.Parameters);
+        }
+
+        /// <summary>
+        /// Gets a TResult from a specified uri.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public Task<TResult> Get<TResult>(QueryParameter parameter)
+        {
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
+
+            return HttpGetAsync<TResult>(parameter.Path, parameter.Parameters);
+        }
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task PostAsync(QueryParameter parameter)
+        {
+            return ExecuteAsync(parameter, "POST");
+        }
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task PutAsync(QueryParameter parameter)
+        {
+            return ExecuteAsync(parameter, "PUT");
+        }
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task DeleteAsync(QueryParameter parameter)
+        {
+            return ExecuteAsync(parameter, "DELETE");
+        }
+
+        /// <summary>
+        /// Executes a PATCH asynchronously.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public Task PatchAsync(QueryParameter parameter)
+        {
+            return ExecuteAsync(parameter, "PATCH");
+        }
+        
+
+
+        /// <summary>
+        /// Executes an action asynchornously.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="verb"></param>
+        /// <returns></returns>
+        public Task ExecuteAsync(QueryParameter parameter, string verb = "GET")
+        {
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
+
+            return HttpGetAsync(parameter.Path, parameter.Parameters, verb);
+        }
 
         /// <summary>
         /// Posts an entity to the server.
