@@ -21,7 +21,7 @@ namespace TrackR.WebApi2
         /// <summary>
         /// Key value store for the body (new { name = variable.Name })
         /// </summary>
-        public object BodyKeyValueStore { get; set; }
+        public object BodyValue { get; set; }
 
         /// <summary>
         /// Raw body content (manual).

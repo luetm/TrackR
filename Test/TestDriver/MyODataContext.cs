@@ -6,7 +6,7 @@ using Container = TestDriver.Service_References.TestSiteReference.Container;
 
 namespace TestDriver
 {
-    public class MyODataContext : ODataTrackRContext<Container, Entity>
+    public class MyODataContext : ODataTrackRContext<ContainerEntity>
     {
         public MyODataContext()
             : base(new Uri("http://localhost.fiddler:3663/odata"), new Uri("http://localhost.fiddler:3663/api/TrackR"))

@@ -255,10 +255,11 @@ namespace TrackR.WebApi2
 
                 if (verb != "GET")
                 {
-                    if (parameter.BodyKeyValueStore != null)
+                    if (parameter.BodyValue != null)
                     {
-                        var json = JsonConvert.SerializeObject(parameter.BodyKeyValueStore);
+                        var json = JsonConvert.SerializeObject(parameter.BodyValue);
                         message.Content = new StringContent(json);
+                        message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                     }
                     if (parameter.BodyRaw != null)
                     {

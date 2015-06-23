@@ -27,7 +27,7 @@ namespace TrackR.Client
         /// <summary>
         /// Entity sets contained in this context.
         /// </summary>
-        public List<EntitySet> EntitySets { get; private set; }
+        public List<EntitySet> EntitySets { get; }
 
         /// <summary>
         /// Returns true if there were any changes made in the context.
@@ -96,21 +96,18 @@ namespace TrackR.Client
             var entitySet = GetEntitySet(entity);
             var id = GetId(entity);
 
-            if (entitySet.EntitiesNonGeneric.Any(e => GetId(entity) == id))
+            if (entitySet.EntitiesNonGeneric.Any(e => GetId(e.GetEntity()) == id))
                 return;
                  
             entitySet.TrackEntity(entity);
 
-            var properties = entity.GetType().GetProperties();
+            var properties = entity.GetType().GetProperties()
+                .Where(p => !p.PropertyType.IsValueType && p.PropertyType != typeof(string) && p.GetValue(entity) != null)
+                .ToList();
+
             foreach (var property in properties)
             {
-                if (property.PropertyType.IsValueType || property.PropertyType == typeof(string))
-                    continue;
-
                 var value = property.GetValue(entity);
-                if (value == null)
-                    continue;
-
                 if (value is IEnumerable)
                 {
                     foreach (var v in value as IEnumerable)
@@ -123,10 +120,9 @@ namespace TrackR.Client
                 }
                 else
                 {
-                    var v = property.GetValue(entity);
-                    if (v is TEntityBase)
+                    if (value is TEntityBase)
                     {
-                        Track(v as TEntityBase);
+                        Track(value as TEntityBase);
                     }
                 }
             }
@@ -243,6 +239,17 @@ namespace TrackR.Client
                 set.Clear();
             }
             EntitySets.Clear();
+        }
+
+        public virtual void Clear<TEntity>() where TEntity : TEntityBase
+        {
+            Clear(typeof(TEntity));
+        }
+
+        public virtual void Clear(Type type)
+        {
+            var set = EntitySets.FirstOrDefault(x => x.Type == type.FullName);
+            set?.Clear();
         }
 
 
