@@ -163,6 +163,7 @@ namespace TrackR.WebApi2
             }
         }
 
+
         /// <summary>
         /// Gets a TResult from a specified uri.
         /// </summary>

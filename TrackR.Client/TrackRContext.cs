@@ -77,6 +77,43 @@ namespace TrackR.Client
             entitySet.AddEntity(entity);
         }
 
+        public void AddDeep(TEntityBase entity)
+        {
+            var entitySet = GetEntitySet(entity);
+            var id = GetId(entity);
+
+            if (id != 0 && entitySet.EntitiesNonGeneric.Any(e => GetId(e.GetEntity()) == id))
+                return;
+
+            Add(entity);
+
+            var properties = entity.GetType().GetProperties()
+                .Where(p => !p.PropertyType.IsValueType && p.PropertyType != typeof(string) && p.GetValue(entity) != null)
+                .ToList();
+
+            foreach (var property in properties)
+            {
+                var value = property.GetValue(entity);
+                if (value is IEnumerable)
+                {
+                    foreach (var v in value as IEnumerable)
+                    {
+                        if (v is TEntityBase)
+                        {
+                            AddDeep(v as TEntityBase);
+                        }
+                    }
+                }
+                else
+                {
+                    if (value is TEntityBase)
+                    {
+                        AddDeep(value as TEntityBase);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Removes an entity from the context. Set will be determined automatically.
         /// </summary>
@@ -85,6 +122,47 @@ namespace TrackR.Client
         {
             var entitySet = GetEntitySet(entity);
             entitySet.RemoveEntity(entity);
+        }
+
+        /// <summary>
+        /// Deeply removes an entity from the context.
+        /// </summary>
+        /// <param name="entity"></param>
+        public void RemoveDeep(TEntityBase entity)
+        {
+            var entitySet = GetEntitySet(entity);
+            var id = GetId(entity);
+
+            if (entitySet.EntitiesNonGeneric.All(e => GetId(e.GetEntity()) != id))
+                return;
+
+            Remove(entity);
+
+            var properties = entity.GetType().GetProperties()
+                .Where(p => !p.PropertyType.IsValueType && p.PropertyType != typeof(string) && p.GetValue(entity) != null)
+                .ToList();
+
+            foreach (var property in properties)
+            {
+                var value = property.GetValue(entity);
+                if (value is IEnumerable)
+                {
+                    foreach (var v in value as IEnumerable)
+                    {
+                        if (v is TEntityBase)
+                        {
+                            RemoveDeep(v as TEntityBase);
+                        }
+                    }
+                }
+                else
+                {
+                    if (value is TEntityBase)
+                    {
+                        RemoveDeep(value as TEntityBase);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -98,7 +176,7 @@ namespace TrackR.Client
 
             if (entitySet.EntitiesNonGeneric.Any(e => GetId(e.GetEntity()) == id))
                 return;
-                 
+
             entitySet.TrackEntity(entity);
 
             var properties = entity.GetType().GetProperties()
@@ -201,7 +279,7 @@ namespace TrackR.Client
                 throw new WebException("Could not save changes. See inner exception for details.", e);
             }
         }
-        
+
         /// <summary>
         /// Rejects all changes and reverts to original.
         /// </summary>
@@ -257,7 +335,7 @@ namespace TrackR.Client
         /// Compiles all changes from tracked entities.
         /// </summary>
         /// <returns></returns>
-        private ChangeSet BuildChangeSet()
+        protected ChangeSet BuildChangeSet()
         {
             var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric)
                 .Where(e => e.State == ChangeState.Changed || e.State == ChangeState.Added || e.State == ChangeState.Deleted)
@@ -283,7 +361,7 @@ namespace TrackR.Client
         /// <param name="entity"></param>
         /// <param name="wrappers"></param>
         /// <param name="allEntities"></param>
-        private void BuildWrapper(EntityTracker entity, List<EntityWrapper> wrappers, List<EntityTracker> allEntities)
+        protected void BuildWrapper(EntityTracker entity, List<EntityWrapper> wrappers, List<EntityTracker> allEntities)
         {
             if (wrappers.Any(e => e.Guid == entity.Guid))
                 return;
@@ -343,7 +421,7 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        private EntitySet GetEntitySet(object entity)
+        protected EntitySet GetEntitySet(object entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -376,13 +454,13 @@ namespace TrackR.Client
         /// <returns></returns>
         protected abstract void SetId(object entity, int value);
 
-        
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="wrapper"></param>
         /// <param name="tracker"></param>
-        private void Update(EntityWrapper wrapper, EntityTracker tracker)
+        protected void Update(EntityWrapper wrapper, EntityTracker tracker)
         {
             var oldEntity = tracker.GetEntity();
             var updatedEntity = wrapper.Entity;
@@ -416,7 +494,7 @@ namespace TrackR.Client
         /// Updates the entity set with the updated values from the server.
         /// </summary>
         /// <param name="content"></param>
-        private void UpdateEntitySets(string content)
+        protected void UpdateEntitySets(string content)
         {
             var deserializeSettings = new JsonSerializerSettings
             {
@@ -435,6 +513,7 @@ namespace TrackR.Client
                     tracker.UpdateOriginal();
                 }
             }
+
             foreach (var tracker in EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList())
             {
                 if (tracker.State == ChangeState.Deleted)
@@ -445,6 +524,8 @@ namespace TrackR.Client
                 else
                 {
                     tracker.State = ChangeState.Unchanged;
+                    var isChanged = tracker.GetEntity().GetType().GetProperty("IsChanged");
+                    isChanged?.SetValue(tracker.GetEntity(), false);
                 }
             }
         }

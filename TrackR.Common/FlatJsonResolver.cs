@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -14,6 +15,15 @@ namespace TrackR.Common
         {
             JsonProperty prop = base.CreateProperty(member, memberSerialization);
 
+            // Property has to be readable and writable.
+            if (!(prop.Writable && prop.Readable))
+                prop.ShouldSerialize = obj => false;
+            
+            // JsonIgnore attribute
+            if (prop.AttributeProvider.GetAttributes(typeof (JsonIgnoreAttribute), true).Any())
+                prop.ShouldSerialize = obj => false;
+
+
             if (prop.DeclaringType != typeof(ChangeSet) &&
                 prop.DeclaringType != typeof(EntityWrapper) &&
                 prop.PropertyType != typeof(string) &&
@@ -21,11 +31,6 @@ namespace TrackR.Common
                 !prop.PropertyType.IsArray)
             {
                 prop.ShouldSerialize = obj => false;
-            }
-
-            if (typeof(List<int>).IsArray)
-            {
-                Debugger.Break();
             }
 
             return prop;

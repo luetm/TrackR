@@ -41,6 +41,12 @@ namespace TrackR.Client
         /// Updates the original with the old value.
         /// </summary>
         internal abstract void UpdateOriginal();
+
+        /// <summary>
+        /// Updates the original and the entity with newer values.
+        /// </summary>
+        /// <param name="newer"></param>
+        public abstract void Update(object newer);
     }
 
     /// <summary>
@@ -51,7 +57,7 @@ namespace TrackR.Client
         /// <summary>
         /// Gets the entity object.
         /// </summary>
-        public TEntity Entity { get; private set; }
+        public TEntity Entity { get; }
 
         /// <summary>
         /// The original entity object (unchanged copy).
@@ -68,11 +74,15 @@ namespace TrackR.Client
         {
             Entity = entity;
 
-            var propChangedEvent = entity.GetType().GetEvent("PropertyChanged");
-            if (propChangedEvent == null)
-                return;
-
-            propChangedEvent.GetAddMethod().Invoke(entity, new object[] { new PropertyChangedEventHandler(OnEntityPropertyChanged)});
+            if (Entity is INotifyPropertyChanged)
+            {
+                var inpc = (INotifyPropertyChanged)Entity;
+                inpc.PropertyChanged += OnEntityPropertyChanged;
+            }
+            else
+            {
+                throw new NotSupportedException("Only INotifyPropertyChanged entities are supported so far.");
+            }
             Guid = Guid.NewGuid();
 
             if (added)
@@ -88,7 +98,7 @@ namespace TrackR.Client
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
+        public void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (State == ChangeState.Unchanged)
             {
@@ -129,6 +139,19 @@ namespace TrackR.Client
         internal override void UpdateOriginal()
         {
             Original = (TEntity)Activator.CreateInstance(typeof(TEntity)).InjectFrom(Entity);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newer"></param>
+        public override void Update(object newer)
+        {
+            if (State == ChangeState.Unchanged)
+            {
+                Entity.InjectFrom(newer);
+                UpdateOriginal();
+            }
         }
     }
 }
