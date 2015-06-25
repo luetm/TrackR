@@ -105,6 +105,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                     TypeNameHandling = TypeNameHandling.Objects,
+                    ContractResolver = new JsonObservableCollectionConverter(true),
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -152,6 +153,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                     TypeNameHandling = TypeNameHandling.Objects,
+                    ContractResolver = new JsonObservableCollectionConverter(true),
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(json, settings);
