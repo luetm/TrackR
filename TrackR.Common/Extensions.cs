@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning;
 using TrackR.Common.DeepCloning.SmartConvention;
@@ -60,17 +61,27 @@ namespace TrackR.Common
                 return format.FormatStatic(key, Uri.EscapeDataString(s));
             }
 
-            var array = value as Array;
+            var array = value as Array ?? value as IEnumerable;
             if (array != null)
             {
                 var parameters = array
                     .Cast<object>()
                     .Select(o => o.ToUriParameter(key));
-                Debugger.Log(1, "TrackR", string.Join("&", parameters));
                 return string.Join("&", parameters);
             }
 
-            return format.FormatStatic(key, value.ToString());
+            if (value.GetType().IsValueType)
+                return $"{key}={value}";
+
+            var properties = value.GetType().GetProperties()
+                .Where(p => !p.GetCustomAttributes(true).Contains(typeof (JsonIgnoreAttribute)))
+                .Where(p => p.GetValue(value) != null)
+                .ToList();
+
+            if (!properties.Any()) return "";
+
+            return string.Join("&", properties
+                .Select(p => p.GetValue(value).ToUriParameter(p.Name)));
         }
 
         /// <summary>

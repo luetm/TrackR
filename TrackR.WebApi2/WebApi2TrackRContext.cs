@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -194,6 +195,7 @@ namespace TrackR.WebApi2
             return HttpGetManyAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
 
+
         /// <summary>
         /// Posts a query asynchronously.
         /// </summary>
@@ -227,7 +229,42 @@ namespace TrackR.WebApi2
         {
             return ExecuteAsync(parameter, "PATCH");
         }
-        
+
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task<TResult> PostAsync<TResult>(QueryParameter parameter)
+        {
+            return ExecuteAsync<TResult>(parameter, "POST");
+        }
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task<TResult> PutAsync<TResult>(QueryParameter parameter)
+        {
+            return ExecuteAsync<TResult>(parameter, "PUT");
+        }
+
+        /// <summary>
+        /// Posts a query asynchronously.
+        /// </summary>
+        public Task<TResult> DeleteAsync<TResult>(QueryParameter parameter)
+        {
+            return ExecuteAsync<TResult>(parameter, "DELETE");
+        }
+
+        /// <summary>
+        /// Executes a PATCH asynchronously.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public Task<TResult> PatchAsync<TResult>(QueryParameter parameter)
+        {
+            return ExecuteAsync<TResult>(parameter, "PATCH");
+        }
+
 
 
         /// <summary>
@@ -277,6 +314,80 @@ namespace TrackR.WebApi2
                 }
             }
         }
+
+        /// <summary>
+        /// Executes an action asynchornously.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="verb"></param>
+        /// <returns></returns>
+        public async Task<TResult> ExecuteAsync<TResult>(QueryParameter parameter, string verb = "GET")
+        {
+            if (parameter == null)
+                throw new ArgumentNullException(nameof(parameter));
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
+                var method = StringToHttpMethod(verb);
+                var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
+                var message = new HttpRequestMessage(method, uri);
+
+                if (verb != "GET")
+                {
+                    if (parameter.BodyValue != null)
+                    {
+                        var json = JsonConvert.SerializeObject(parameter.BodyValue);
+                        message.Content = new StringContent(json);
+                        message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    }
+                    if (parameter.BodyRaw != null)
+                    {
+                        message.Content = new StringContent(parameter.BodyRaw);
+                    }
+                }
+
+                var response = await client.SendAsync(message);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                }
+
+                var jsonResult = await response.Content.ReadAsStringAsync();
+                var settings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                    ContractResolver = new JsonObservableCollectionConverter(true),
+                };
+
+                var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
+                if (result is TEntityBase)
+                {
+                    Track(result as TEntityBase);
+                }
+                if (result is IEnumerable)
+                {
+                    foreach (var r in (result as IEnumerable))
+                    {
+                        if (r is TEntityBase)
+                        {
+                            Track(r as TEntityBase);
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
 
         /// <summary>
         /// Posts an entity to the server.
