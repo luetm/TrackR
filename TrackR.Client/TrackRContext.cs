@@ -424,7 +424,7 @@ namespace TrackR.Client
         protected EntitySet GetEntitySet(object entity)
         {
             if (entity == null)
-                throw new ArgumentNullException("entity");
+                throw new ArgumentNullException(nameof(entity));
 
             var entitySet = EntitySets.SingleOrDefault(s => s.Type == entity.GetType().FullName);
             if (entitySet == null)
@@ -509,8 +509,7 @@ namespace TrackR.Client
                 if (wrapper.ChangeState != ChangeState.Deleted)
                 {
                     var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
-                    Update(wrapper, tracker);
-                    tracker.UpdateOriginal();
+                    tracker.Update(wrapper.Entity);
                 }
             }
 

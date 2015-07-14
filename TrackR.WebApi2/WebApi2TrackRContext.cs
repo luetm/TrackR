@@ -33,7 +33,7 @@ namespace TrackR.WebApi2
         {
             // Check for null.
             if (behavior == null)
-                throw new ArgumentNullException("behavior");
+                throw new ArgumentNullException(nameof(behavior));
 
             // If the uri given is relative, we transform it to an absolute uri by 
             // appending the relative path to the absolute uri.
@@ -104,20 +104,12 @@ namespace TrackR.WebApi2
                 var json = await response.Content.ReadAsStringAsync();
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
-                foreach (var r in result)
-                {
-                    if (r is TEntityBase)
-                    {
-                        Track(r as TEntityBase);
-                    }
-                }
-                
                 return result;
             }
         }
@@ -152,7 +144,7 @@ namespace TrackR.WebApi2
                 var json = await response.Content.ReadAsStringAsync();
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                 };
@@ -306,7 +298,7 @@ namespace TrackR.WebApi2
                         message.Content = new StringContent(parameter.BodyRaw);
                     }
                 }
-                
+
                 var response = await client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -364,7 +356,7 @@ namespace TrackR.WebApi2
                 var jsonResult = await response.Content.ReadAsStringAsync();
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                 };
@@ -404,7 +396,7 @@ namespace TrackR.WebApi2
             {
                 var settings = new JsonSerializerSettings
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 
@@ -442,7 +434,7 @@ namespace TrackR.WebApi2
                     .Select(prop => prop.GetValue(query).ToUriParameter(prop.Name))
                     .ToList();
 
-                
+
                 var queryString = string.Join("&", strings);
                 var builder = new UriBuilder(BaseUri)
                 {
@@ -473,7 +465,7 @@ namespace TrackR.WebApi2
                 return builder.Uri;
             }
         }
-        
+
         /// <summary>
         /// Converts a string to the HttpMethod enum.
         /// </summary>

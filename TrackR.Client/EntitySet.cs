@@ -51,6 +51,35 @@ namespace TrackR.Client
         /// Removes all entities from the set.
         /// </summary>
         public abstract void Clear();
+
+        /// <summary>
+        /// Returns true if the set has the 'same' entity already in the set, meaning the same ID.
+        /// </summary>
+        /// <param name="getId">Function to determine the ID of an entity.</param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public bool HasSameEntity(Func<object, int> getId, object other)
+        {
+            if (getId == null || other == null)
+                return false;
+
+            return EntitiesNonGeneric.Any(e => getId(e.GetEntity()) == getId(other));
+        }
+
+        /// <summary>
+        /// Returns the tracker of an entity with a certain id.
+        /// </summary>
+        /// <param name="getId"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public EntityTracker GetTrackerWithId(Func<object, int> getId, int id)
+        {
+            if (getId == null)
+                throw new ArgumentNullException(nameof(getId));
+
+            return EntitiesNonGeneric.FirstOrDefault(e => getId(e.GetEntity()) == id);
+            
+        }
     }
 
     /// <summary>
@@ -110,7 +139,12 @@ namespace TrackR.Client
             try
             {
                 var e = (TEntity)entity;
-                var tracker = Entities.First(t => t.Entity.Equals(e));
+                var tracker = Entities.FirstOrDefault(t => t.Entity.Equals(e));
+                if (tracker == null)
+                {
+                    Track(e);
+                    tracker = Entities.First(t => t.Entity.Equals(e));
+                }
                 if (tracker.State == ChangeState.Added)
                 {
                     UnTrackEntity(entity);

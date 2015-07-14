@@ -147,10 +147,18 @@ namespace TrackR.Client
         /// <param name="newer"></param>
         public override void Update(object newer)
         {
-            if (State == ChangeState.Unchanged)
+            var properties = Entity.GetType().GetProperties();
+            foreach (var property in properties)
             {
-                Entity.InjectFrom(newer);
-                UpdateOriginal();
+                if (property.CanRead &&
+                    property.CanWrite &&
+                    (property.PropertyType.IsValueType ||
+                    property.PropertyType == typeof(string) ||
+                    property.PropertyType.IsArray ||
+                    property.PropertyType.Name.Contains("Nullable")))
+                {
+                    property.SetValue(Entity, property.GetValue(newer));
+                }
             }
         }
     }

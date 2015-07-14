@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -11,13 +12,11 @@ namespace TrackR.Controller.EF6
 {
     public abstract class TrackRControllerBase : ApiController
     {
-        private readonly DbContext _context;
         private readonly List<Assembly> _assemblies;
 
         protected TrackRControllerBase()
         {
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            _context = CreateContext();
             _assemblies = new List<Assembly>();
 
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
@@ -26,74 +25,84 @@ namespace TrackR.Controller.EF6
 
         public IHttpActionResult Post(ChangeSet changeSet)
         {
-            if (changeSet == null)
+            using (var context = CreateContext())
             {
-                return BadRequest();
-            }
-
-            // Reconstruct object graphs
-            foreach (var wrapper in changeSet.Entities)
-            {
-                Reconstruct(wrapper, changeSet.Entities);
-            }
-
-            // Fix collections
-            foreach (var wrapper in changeSet.Entities)
-            {
-                FixCollections(wrapper);
-            }
-
-            // Delete flagged entities
-            var toRemove = changeSet.Entities
-                .Where(e => e.ChangeState == ChangeState.Deleted)
-                .ToList();
-            foreach (var remove in toRemove)
-            {
-                _context.Entry(remove.Entity).State = EntityState.Deleted;
-            }
-
-            // Add flagged entities
-            var toAdd = changeSet.Entities
-                .Where(e => e.ChangeState == ChangeState.Added)
-                .ToList();
-            foreach (var add in toAdd)
-            {
-                _context.Entry(add.Entity).State = EntityState.Added;
-            }
-
-            // Modify flagged entities
-            var toEdit = changeSet.Entities
-                .Where(e => e.ChangeState == ChangeState.Changed)
-                .ToList();
-            foreach (var edit in toEdit)
-            {
-                _context.Entry(edit.Entity).State = EntityState.Modified;
-            }
-
-            // Save changes
-            _context.SaveChanges();
-
-            // Update entities
-            foreach (var wrapper in changeSet.Entities.ToList())
-            {
-                if (wrapper.ChangeState == ChangeState.Deleted)
+                try
                 {
-                    changeSet.Entities.Remove(wrapper);
-                    continue;
+                    if (changeSet == null)
+                    {
+                        return BadRequest();
+                    }
+
+                    // Reconstruct object graphs
+                    foreach (var wrapper in changeSet.Entities)
+                    {
+                        Reconstruct(wrapper, changeSet.Entities);
+                    }
+
+                    // Fix collections
+                    foreach (var wrapper in changeSet.Entities)
+                    {
+                        FixCollections(wrapper);
+                    }
+
+                    // Delete flagged entities
+                    var toRemove = changeSet.Entities
+                        .Where(e => e.ChangeState == ChangeState.Deleted)
+                        .ToList();
+                    foreach (var remove in toRemove)
+                    {
+                        context.Entry(remove.Entity).State = EntityState.Deleted;
+                    }
+
+                    // Add flagged entities
+                    var toAdd = changeSet.Entities
+                        .Where(e => e.ChangeState == ChangeState.Added)
+                        .ToList();
+                    foreach (var add in toAdd)
+                    {
+                        context.Entry(add.Entity).State = EntityState.Added;
+                    }
+
+                    // Modify flagged entities
+                    var toEdit = changeSet.Entities
+                        .Where(e => e.ChangeState == ChangeState.Changed)
+                        .ToList();
+                    foreach (var edit in toEdit)
+                    {
+                        context.Entry(edit.Entity).State = EntityState.Modified;
+                    }
+
+                    // Save changes
+                    context.SaveChanges();
+
+                    // Update entities
+                    foreach (var wrapper in changeSet.Entities.ToList())
+                    {
+                        if (wrapper.ChangeState == ChangeState.Deleted)
+                        {
+                            changeSet.Entities.Remove(wrapper);
+                            continue;
+                        }
+
+                        context.Entry(wrapper.Entity).Reload();
+                    }
+
+                    var settings = new JsonSerializerSettings
+                    {
+                        ContractResolver = new FlatJsonResolver(),
+                        TypeNameHandling = TypeNameHandling.Objects,
+                        PreserveReferencesHandling = PreserveReferencesHandling.All,
+                        ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                    };
+                    var json = JsonConvert.SerializeObject(changeSet, settings);
+                    return Ok(json);
                 }
-
-                _context.Entry(wrapper.Entity).Reload();
+                catch (Exception err)
+                {
+                    return InternalServerError(err);
+                }
             }
-
-            var settings = new JsonSerializerSettings
-            {
-                ContractResolver = new FlatJsonResolver(),
-                TypeNameHandling = TypeNameHandling.Objects,
-                PreserveReferencesHandling = PreserveReferencesHandling.All, 
-                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-            };
-            var json = JsonConvert.SerializeObject(changeSet, settings);
-            return Ok(json);
         }
 
 
