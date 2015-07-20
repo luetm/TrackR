@@ -107,6 +107,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -147,6 +148,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(json, settings);
@@ -359,6 +361,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
@@ -397,6 +400,7 @@ namespace TrackR.WebApi2
                 var settings = new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

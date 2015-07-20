@@ -194,6 +194,7 @@ namespace UnitTests.Client
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
+                MaxDepth = 100,
             };
 
             var changeSet = new ChangeSet { Entities = new List<EntityWrapper>() };

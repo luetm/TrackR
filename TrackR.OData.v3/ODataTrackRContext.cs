@@ -320,6 +320,7 @@ namespace TrackR.OData.v3
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -422,6 +423,7 @@ namespace TrackR.OData.v3
                 {
                     ContractResolver = new ODataContractResolver(),
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

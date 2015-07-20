@@ -52,18 +52,35 @@ namespace TrackR.Client
         /// <summary>
         /// URI to the TrackR Controller.
         /// </summary>
-        protected readonly Uri TrackRUri;
+        protected Uri TrackRUri;
 
 
         /// <summary>
         /// Base constructor.
         /// </summary>
         /// <param name="trackRUri"></param>
-        protected TrackRContext(Uri trackRUri)
+        protected TrackRContext(Uri trackRUri) : this()
         {
             TrackRUri = trackRUri;
             BaseUri = new UriBuilder(trackRUri) { Path = "", Query = "" }.Uri;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected TrackRContext()
+        {
             EntitySets = new List<EntitySet>();
+        }
+
+        /// <summary>
+        /// Initializes the context, in case the uri is not known at constructor time (IoC).
+        /// </summary>
+        /// <param name="trackRUri"></param>
+        public void Initialize(Uri trackRUri)
+        {
+            TrackRUri = trackRUri;
+            BaseUri = new UriBuilder(trackRUri) { Path = "", Query = "" }.Uri;
         }
 
 
@@ -243,6 +260,7 @@ namespace TrackR.Client
                     ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
@@ -501,6 +519,7 @@ namespace TrackR.Client
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
+                MaxDepth = 100,
             };
 
             var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
