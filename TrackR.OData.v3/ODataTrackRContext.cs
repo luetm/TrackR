@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Services.Client;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -50,6 +49,24 @@ namespace TrackR.OData.v3
 
             // Authentication
             QueryContext.SendingRequest2 += OnSendingRequest;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected ODataTrackRContext() : base()
+        {
+            
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseUri"></param>
+        protected ODataTrackRContext(Uri baseUri) : base(baseUri)
+        {
+            
         }
 
 
@@ -321,7 +338,7 @@ namespace TrackR.OData.v3
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -424,7 +441,7 @@ namespace TrackR.OData.v3
                 {
                     ContractResolver = new ODataContractResolver(),
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

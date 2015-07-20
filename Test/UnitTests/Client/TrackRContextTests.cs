@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -195,7 +194,7 @@ namespace UnitTests.Client
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
-                Culture = CultureInfo.InvariantCulture,
+                MaxDepth = 100,
             };
 
             var changeSet = new ChangeSet { Entities = new List<EntityWrapper>() };

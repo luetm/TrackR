@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,10 +16,23 @@ namespace TrackR.WebApi2
 {
     public abstract class WebApi2TrackRContext<TEntityBase> : TrackRContext<TEntityBase> where TEntityBase : class
     {
-        protected WebApi2TrackRContext(Uri trackRUri) : base(trackRUri)
+        /// <summary>
+        /// 
+        /// </summary>
+        protected WebApi2TrackRContext() : base()
         {
-            BaseUri = trackRUri;
+
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseUri"></param>
+        protected WebApi2TrackRContext(Uri baseUri) : base(baseUri)
+        {
+
+        }
+
 
         /// <summary>
         /// Logs the user in with the service.
@@ -52,7 +64,7 @@ namespace TrackR.WebApi2
             var success = await AuthBehavior.Login(username, password, uri.ToString());
             return success;
         }
-
+        
         /// <summary>
         /// Destroys all authentication information.
         /// </summary>
@@ -108,7 +120,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -149,7 +161,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(json, settings);
@@ -362,7 +374,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
@@ -401,7 +413,7 @@ namespace TrackR.WebApi2
                 var settings = new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    Culture = CultureInfo.InvariantCulture,
+                    MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

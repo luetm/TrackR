@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
@@ -95,7 +94,7 @@ namespace TrackR.Controller.EF6
                         TypeNameHandling = TypeNameHandling.Objects,
                         PreserveReferencesHandling = PreserveReferencesHandling.All,
                         ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-                        Culture = CultureInfo.InvariantCulture,
+                        MaxDepth = 100,
                     };
                     var json = JsonConvert.SerializeObject(changeSet, settings);
                     return Ok(json);

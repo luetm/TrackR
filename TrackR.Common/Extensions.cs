@@ -48,7 +48,7 @@ namespace TrackR.Common
             const string format = "{0}={1}";
             if (value == null)
             {
-                return format.FormatStatic(key, "NULL");
+                return null;
             }
 
             if (value is DateTime)
