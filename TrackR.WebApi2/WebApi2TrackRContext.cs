@@ -16,10 +16,23 @@ namespace TrackR.WebApi2
 {
     public abstract class WebApi2TrackRContext<TEntityBase> : TrackRContext<TEntityBase> where TEntityBase : class
     {
-        protected WebApi2TrackRContext(Uri trackRUri) : base(trackRUri)
+        /// <summary>
+        /// 
+        /// </summary>
+        protected WebApi2TrackRContext() : base()
         {
-            BaseUri = trackRUri;
+
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseUri"></param>
+        protected WebApi2TrackRContext(Uri baseUri) : base(baseUri)
+        {
+
+        }
+
 
         /// <summary>
         /// Logs the user in with the service.
@@ -51,7 +64,7 @@ namespace TrackR.WebApi2
             var success = await AuthBehavior.Login(username, password, uri.ToString());
             return success;
         }
-
+        
         /// <summary>
         /// Destroys all authentication information.
         /// </summary>

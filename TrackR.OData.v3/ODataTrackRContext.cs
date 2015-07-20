@@ -53,6 +53,24 @@ namespace TrackR.OData.v3
 
 
         /// <summary>
+        /// 
+        /// </summary>
+        protected ODataTrackRContext() : base()
+        {
+            
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseUri"></param>
+        protected ODataTrackRContext(Uri baseUri) : base(baseUri)
+        {
+            
+        }
+
+
+        /// <summary>
         /// Logs the user in with the service.
         /// </summary>
         /// <param name="uri">Uri, either relative to base url or absolute.</param>
