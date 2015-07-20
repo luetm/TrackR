@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Services.Client;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -320,6 +321,7 @@ namespace TrackR.OData.v3
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -422,6 +424,7 @@ namespace TrackR.OData.v3
                 {
                     ContractResolver = new ODataContractResolver(),
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    Culture = CultureInfo.InvariantCulture,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

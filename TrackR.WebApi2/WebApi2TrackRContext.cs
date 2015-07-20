@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -107,6 +108,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -147,6 +149,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(json, settings);
@@ -359,6 +362,7 @@ namespace TrackR.WebApi2
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
@@ -397,6 +401,7 @@ namespace TrackR.WebApi2
                 var settings = new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    Culture = CultureInfo.InvariantCulture,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
 

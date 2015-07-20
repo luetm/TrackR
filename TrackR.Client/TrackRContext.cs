@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -243,7 +244,8 @@ namespace TrackR.Client
                     ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
-                };
+                    Culture = CultureInfo.InvariantCulture,
+            };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
 
                 // Send the changeset to the server
@@ -501,6 +503,7 @@ namespace TrackR.Client
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
+                Culture = CultureInfo.InvariantCulture,
             };
 
             var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
