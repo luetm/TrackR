@@ -180,12 +180,12 @@ namespace TrackR.WebApi2
         /// <typeparam name="TResult"></typeparam>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public Task<TResult> GetAsync<TResult>(QueryParameter parameter)
+        public async Task<TResult> GetAsync<TResult>(QueryParameter parameter)
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
 
-            return HttpGetAsync<TResult>(parameter.Path, parameter.UriParameters);
+            return await HttpGetAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
 
         /// <summary>
