@@ -520,7 +520,10 @@ namespace TrackR.Client
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
                 MaxDepth = 100,
+                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
             };
+
+            content = content.Replace(@"\\n", @"\n").Replace(@"\\r", @"\r");
 
             var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
             foreach (var wrapper in updatedChangeSet.Entities)

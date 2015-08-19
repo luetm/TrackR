@@ -152,7 +152,8 @@ namespace TrackR.WebApi2
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
@@ -365,7 +366,8 @@ namespace TrackR.WebApi2
                 var response = await client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
 
                 var jsonResult = await response.Content.ReadAsStringAsync();

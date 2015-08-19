@@ -95,6 +95,7 @@ namespace TrackR.Controller.EF6
                         PreserveReferencesHandling = PreserveReferencesHandling.All,
                         ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                         MaxDepth = 100,
+                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                     };
                     var json = JsonConvert.SerializeObject(changeSet, settings);
                     return Ok(json);

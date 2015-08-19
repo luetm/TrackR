@@ -371,10 +371,18 @@ namespace TrackR.OData.v3
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
 
-                var result = await response.Content.ReadAsAsync<TResult>();
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new ODataContractResolver(),
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    MaxDepth = 100,
+                };
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<TResult>(json, settings);
                 return (TResult)(typeof(TResult).GetConstructors().Single(x => !x.GetParameters().Any()).Invoke(null)).InjectFrom<DeepCloneInjection>(result);
             }
         }
@@ -403,7 +411,8 @@ namespace TrackR.OData.v3
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
             }
         }
