@@ -2,6 +2,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -121,6 +123,7 @@ namespace TrackR.WebApi2
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                     MaxDepth = 100,
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
@@ -142,6 +145,7 @@ namespace TrackR.WebApi2
                 var uri = ToAbsoluteUri(queryPath, parameters, null);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("utf-8"));
 
                 if (AuthBehavior != null)
                 {
@@ -163,6 +167,7 @@ namespace TrackR.WebApi2
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                     MaxDepth = 100,
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(json, settings);
@@ -308,6 +313,7 @@ namespace TrackR.WebApi2
                         var json = JsonConvert.SerializeObject(parameter.BodyValue);
                         message.Content = new StringContent(json);
                         message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                        message.Content.Headers.ContentEncoding.Add("utf-8");
                     }
                     if (parameter.BodyRaw != null)
                     {
@@ -318,7 +324,8 @@ namespace TrackR.WebApi2
                 var response = await client.SendAsync(message);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, response.Content.ToString()));
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
                 }
             }
         }
@@ -348,7 +355,7 @@ namespace TrackR.WebApi2
                 var method = StringToHttpMethod(verb);
                 var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
                 var message = new HttpRequestMessage(method, uri);
-
+                
                 if (verb != "GET")
                 {
                     if (parameter.BodyValue != null)
@@ -356,6 +363,7 @@ namespace TrackR.WebApi2
                         var json = JsonConvert.SerializeObject(parameter.BodyValue);
                         message.Content = new StringContent(json);
                         message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                        message.Content.Headers.ContentEncoding.Add("utf-8");
                     }
                     if (parameter.BodyRaw != null)
                     {
@@ -377,6 +385,7 @@ namespace TrackR.WebApi2
                     TypeNameHandling = TypeNameHandling.Objects,
                     ContractResolver = new JsonObservableCollectionConverter(true),
                     MaxDepth = 100,
+                    Culture = CultureInfo.InvariantCulture,
                 };
 
                 var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
@@ -415,6 +424,7 @@ namespace TrackR.WebApi2
                 var settings = new JsonSerializerSettings
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    Culture = CultureInfo.InvariantCulture,
                     MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(entity, settings);
@@ -453,6 +463,10 @@ namespace TrackR.WebApi2
                     .Select(prop => prop.GetValue(query).ToUriParameter(prop.Name))
                     .ToList();
 
+                if (BaseUri == null)
+                {
+                    throw new InvalidOperationException("BaseUri is null. Please adjust configuration.");
+                }
 
                 var queryString = string.Join("&", strings);
                 var builder = new UriBuilder(BaseUri)

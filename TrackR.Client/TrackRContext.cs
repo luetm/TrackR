@@ -2,6 +2,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -255,11 +257,16 @@ namespace TrackR.Client
             {
                 // Get all pending changes & turn them into JSON
                 var changetSet = BuildChangeSet();
+
+                if (changetSet == null)
+                    return;
+
                 var settings = new JsonSerializerSettings
                 {
                     ContractResolver = new FlatJsonResolver(),
                     TypeNameHandling = TypeNameHandling.Objects,
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    Culture = CultureInfo.InvariantCulture,
                     MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
@@ -275,13 +282,6 @@ namespace TrackR.Client
 
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
                     var content = await result.Content.ReadAsStringAsync();
-
-                    // Well.. I don't know why but sometimes the stuff comes out as an excaped string
-                    // So lets fix it.
-                    if (content.StartsWith("\""))
-                    {
-                        content = content.Substring(1, content.Length - 2).Replace("\\\"", "\"");
-                    }
 
                     if (!result.IsSuccessStatusCode)
                     {
@@ -519,19 +519,22 @@ namespace TrackR.Client
                 ContractResolver = new FlatJsonResolver(),
                 TypeNameHandling = TypeNameHandling.Objects,
                 PreserveReferencesHandling = PreserveReferencesHandling.All,
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                 MaxDepth = 100,
-                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                Culture = CultureInfo.InvariantCulture,
+                StringEscapeHandling = StringEscapeHandling.Default,
             };
 
-            content = content.Replace(@"\\n", @"\n").Replace(@"\\r", @"\r");
-
             var updatedChangeSet = JsonConvert.DeserializeObject<ChangeSet>(content, deserializeSettings);
-            foreach (var wrapper in updatedChangeSet.Entities)
+            if (updatedChangeSet != null)
             {
-                if (wrapper.ChangeState != ChangeState.Deleted)
+                foreach (var wrapper in updatedChangeSet.Entities)
                 {
-                    var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
-                    tracker.Update(wrapper.Entity);
+                    if (wrapper.ChangeState != ChangeState.Deleted)
+                    {
+                        var tracker = EntitySets.SelectMany(s => s.EntitiesNonGeneric).First(t => t.Guid == wrapper.Guid);
+                        tracker.Update(wrapper.Entity);
+                    }
                 }
             }
 

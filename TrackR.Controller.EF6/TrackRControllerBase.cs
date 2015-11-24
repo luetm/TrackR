@@ -3,8 +3,16 @@ using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Core;
+using System.Data.Entity.Infrastructure;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web.Http;
 using TrackR.Common;
 
@@ -23,7 +31,12 @@ namespace TrackR.Controller.EF6
             AddAssemblies(_assemblies);
         }
 
-        public IHttpActionResult Post(ChangeSet changeSet)
+        protected virtual void OnPosting(ChangeSet cs) { }
+        protected virtual void OnPosted(string json) { }
+        protected virtual void OnException(Exception err) { }
+        protected virtual void OnOptimisticConcurrencyException(DbContext context, DbUpdateConcurrencyException err) { }
+
+        public async Task<HttpResponseMessage> Post(ChangeSet changeSet)
         {
             using (var context = CreateContext())
             {
@@ -31,8 +44,10 @@ namespace TrackR.Controller.EF6
                 {
                     if (changeSet == null)
                     {
-                        return BadRequest();
+                        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "");
                     }
+
+                    OnPosting(changeSet);
 
                     // Reconstruct object graphs
                     foreach (var wrapper in changeSet.Entities)
@@ -74,7 +89,7 @@ namespace TrackR.Controller.EF6
                     }
 
                     // Save changes
-                    context.SaveChanges();
+                    await context.SaveChangesAsync();
 
                     // Update entities
                     foreach (var wrapper in changeSet.Entities.ToList())
@@ -95,14 +110,27 @@ namespace TrackR.Controller.EF6
                         PreserveReferencesHandling = PreserveReferencesHandling.All,
                         ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                         MaxDepth = 100,
-                        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                        Culture = CultureInfo.InvariantCulture,
+                        StringEscapeHandling = StringEscapeHandling.Default,
                     };
                     var json = JsonConvert.SerializeObject(changeSet, settings);
-                    return Ok(json);
+                    OnPosted(json);
+                
+                    var response = Request.CreateResponse(HttpStatusCode.OK);
+                    response.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                    return response;
+                }
+                catch (DbUpdateConcurrencyException err)
+                {
+                    OnOptimisticConcurrencyException(context, err);
+                    var response = Request.CreateResponse(HttpStatusCode.OK);
+                    response.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+                    return response;
                 }
                 catch (Exception err)
                 {
-                    return InternalServerError(err);
+                    OnException(err);
+                    return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, err.GenerateInfo(), err);
                 }
             }
         }
