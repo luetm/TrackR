@@ -55,6 +55,7 @@
     <Compile Include="DeepCloning\SmartConvention\SmartConventionInfo.cs" />
     <Compile Include="DeepCloning\SmartConvention\SmartConventionInjection.cs" />
     <Compile Include="DeepCloning\SmartConvention\SmartMatchInfo.cs" />
+    <Compile Include="DontTrackAttribute.cs" />
     <Compile Include="EntityReference.cs" />
     <Compile Include="EntityWrapper.cs" />
     <Compile Include="ExceptionExtensions.cs" />

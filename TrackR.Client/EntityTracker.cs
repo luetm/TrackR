@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 using Omu.ValueInjecter;
 using TrackR.Common;
 
@@ -100,6 +102,10 @@ namespace TrackR.Client
         /// <param name="e"></param>
         public void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            var property = Entity.GetType().GetProperty(e.PropertyName);
+            if (property.GetCustomAttributes().OfType<DontTrackAttribute>().Any())
+                return;
+
             if (State == ChangeState.Unchanged)
             {
                 State = ChangeState.Changed;

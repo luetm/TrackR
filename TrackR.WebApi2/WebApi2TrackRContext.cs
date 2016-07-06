@@ -35,6 +35,18 @@ namespace TrackR.WebApi2
 
         }
 
+        /// <summary>
+        /// Creates the http client.
+        /// </summary>
+        /// <returns></returns>
+        protected override HttpClient CreateHttpClient()
+        {
+            var handler = new HttpClientHandler
+            {
+                UseProxy = false,
+            };
+            return new HttpClient(handler);
+        }
 
         /// <summary>
         /// Logs the user in with the service.
@@ -87,7 +99,6 @@ namespace TrackR.WebApi2
             });
         }
 
-
         /// <summary>
         /// Direct query over url.
         /// </summary>
@@ -97,7 +108,7 @@ namespace TrackR.WebApi2
         /// <returns></returns>
         private async Task<IEnumerable<TResult>> HttpGetManyAsync<TResult>(string queryPath, object parameters)
         {
-            using (var client = new HttpClient())
+            using (var client = CreateHttpClient())
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -140,7 +151,7 @@ namespace TrackR.WebApi2
         /// <returns></returns>
         private async Task<TResult> HttpGetAsync<TResult>(string queryPath, object parameters)
         {
-            using (var client = new HttpClient())
+            using (var client = CreateHttpClient())
             {
                 var uri = ToAbsoluteUri(queryPath, parameters, null);
                 client.DefaultRequestHeaders.Accept.Clear();
@@ -289,9 +300,9 @@ namespace TrackR.WebApi2
         public async Task ExecuteAsync(QueryParameter parameter, string verb = "GET")
         {
             if (parameter == null)
-                throw new ArgumentNullException("parameter");
+                throw new ArgumentNullException(nameof(parameter));
 
-            using (var client = new HttpClient())
+            using (var client = CreateHttpClient())
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -341,7 +352,7 @@ namespace TrackR.WebApi2
             if (parameter == null)
                 throw new ArgumentNullException(nameof(parameter));
 
-            using (var client = new HttpClient())
+            using (var client = CreateHttpClient())
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -419,7 +430,7 @@ namespace TrackR.WebApi2
         {
             var uri = ToAbsoluteUri(entitySet, null);
 
-            using (var client = new HttpClient())
+            using (var client = CreateHttpClient())
             {
                 var settings = new JsonSerializerSettings
                 {
