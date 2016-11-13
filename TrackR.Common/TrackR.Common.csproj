@@ -51,6 +51,9 @@
   <ItemGroup>
     <Compile Include="ChangeSet.cs" />
     <Compile Include="ChangeState.cs" />
+    <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="Conflict.cs" />
+    <Compile Include="ConflictResolution.cs" />
     <Compile Include="DeepCloning\DeepCloneInjection.cs" />
     <Compile Include="DeepCloning\SmartConvention\SmartConventionInfo.cs" />
     <Compile Include="DeepCloning\SmartConvention\SmartConventionInjection.cs" />
@@ -69,8 +72,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) C:\Dev\Luna\Libs\$(TargetFileName)
-copy $(TargetDir)$(TargetName).pdb C:\Dev\Luna\Libs\$(TargetName).pdb</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

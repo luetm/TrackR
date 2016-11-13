@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -281,15 +281,29 @@ namespace TrackR.Client
                     }
 
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
-                    var content = await result.Content.ReadAsStringAsync();
+                    var responseContent = await result.Content.ReadAsStringAsync();
 
-                    if (!result.IsSuccessStatusCode)
+                    if (result.IsSuccessStatusCode)
                     {
-                        throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, content));
+                        UpdateEntitySets(responseContent);
+                    }
+                    else if (result.StatusCode == HttpStatusCode.Conflict)
+                    {
+                        var conflicts = JsonConvert.DeserializeObject<List<Conflict>>(responseContent);
+                        foreach (var conflict in conflicts)
+                        {
+                            conflict.ClientVersion = ((JObject)conflict.ClientVersion).ToObject(conflict.Type);
+                            conflict.ServerVersion = ((JObject)conflict.ServerVersion).ToObject(conflict.Type);
+                        }
+
+                        var resolution = await HandleConcurrencyException(conflicts, changetSet);
+                        await CommitConflictResolution(resolution, changetSet);
+                    }
+                    else
+                    {
+                        throw new ServerException("Server returned: {0}\n{1}".FormatStatic(result.StatusCode, responseContent));
                     }
 
-                    // Update entity trackers and sets
-                    UpdateEntitySets(content);
                 }
             }
             catch (Exception e)
@@ -298,6 +312,7 @@ namespace TrackR.Client
             }
         }
 
+        
         /// <summary>
         /// Rejects all changes and reverts to original.
         /// </summary>
@@ -337,11 +352,19 @@ namespace TrackR.Client
             EntitySets.Clear();
         }
 
+        /// <summary>
+        /// Clears all entites of a certain type.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
         public virtual void Clear<TEntity>() where TEntity : TEntityBase
         {
             Clear(typeof(TEntity));
         }
 
+        /// <summary>
+        /// Clears all entites of a certain type.
+        /// </summary>
+        /// <param name="type"></param>
         public virtual void Clear(Type type)
         {
             var set = EntitySets.FirstOrDefault(x => x.Type == type.FullName);
@@ -552,6 +575,34 @@ namespace TrackR.Client
                     isChanged?.SetValue(tracker.GetEntity(), false);
                 }
             }
+        }
+
+        
+        /// <summary>
+        /// Handles conflict situation.
+        /// </summary>
+        /// <param name="conflicts"></param>
+        /// <param name="changetSet"></param>
+        /// <returns></returns>
+        protected abstract Task<IEnumerable<ConflictResolution>> HandleConcurrencyException(List<Conflict> conflicts, ChangeSet changetSet);
+
+
+        /// <summary>
+        /// Commits a changeset.
+        /// </summary>
+        /// <param name="resolutions"></param>
+        /// <param name="changeSet"></param>
+        /// <returns></returns>
+        private Task CommitConflictResolution(IEnumerable<ConflictResolution> resolutions, ChangeSet changeSet)
+        {
+            foreach (var resolution in resolutions)
+            {
+                var set = GetEntitySet(resolution.Resolution);
+                var current = set.EntitiesNonGeneric.Single(x => GetId(x.GetEntity()) == GetId(resolution.Resolution));
+                current.GetEntity().InjectFrom(resolution.Resolution);
+            }
+
+            return SubmitChangesAsync();
         }
     }
 }

@@ -77,14 +77,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) C:\Dev\Luna\Libs\$(TargetFileName)
-copy $(TargetDir)$(TargetName).pdb C:\Dev\Luna\Libs\$(TargetName).pdb
-
-copy /y $(TargetDir)TrackR.Common.dll C:\Dev\Luna\Libs\TrackR.Controller.EF6.dll
-copy /y $(TargetDir)TrackR.Common.pdb C:\Dev\Luna\Libs\TrackR.Controller.EF6.pdb
-
-copy /y $(TargetDir)TrackR.Controller.EF6.dll C:\Dev\Luna\Libs\TrackR.Controller.EF6.dll
-copy /y $(TargetDir)TrackR.Controller.EF6.pdb C:\Dev\Luna\Libs\TrackR.Controller.EF6.pdb</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

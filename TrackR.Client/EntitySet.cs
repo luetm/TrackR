@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Linq;
 using TrackR.Common;
 
@@ -96,10 +94,7 @@ namespace TrackR.Client
         /// <summary>
         /// Returns the list of entities in this entity set.
         /// </summary>
-        public override IEnumerable<EntityTracker> EntitiesNonGeneric
-        {
-            get { return Entities; }
-        }
+        public override IEnumerable<EntityTracker> EntitiesNonGeneric => Entities;
 
 
         /// <summary>

@@ -1,12 +1,10 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Core;
 using System.Data.Entity.Infrastructure;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,7 +32,10 @@ namespace TrackR.Controller.EF6
         protected virtual void OnPosting(ChangeSet cs) { }
         protected virtual void OnPosted(string json) { }
         protected virtual void OnException(Exception err) { }
-        protected virtual void OnOptimisticConcurrencyException(DbContext context, DbUpdateConcurrencyException err) { }
+        protected virtual HttpResponseMessage OnOptimisticConcurrencyException(DbContext context, DbUpdateConcurrencyException err)
+        {
+            return Request.CreateErrorResponse(HttpStatusCode.Conflict, err);
+        }
 
         public async Task<HttpResponseMessage> Post(ChangeSet changeSet)
         {
@@ -115,26 +116,22 @@ namespace TrackR.Controller.EF6
                     };
                     var json = JsonConvert.SerializeObject(changeSet, settings);
                     OnPosted(json);
-                
+
                     var response = Request.CreateResponse(HttpStatusCode.OK);
                     response.Content = new StringContent(json, Encoding.UTF8, "application/json");
                     return response;
                 }
                 catch (DbUpdateConcurrencyException err)
                 {
-                    OnOptimisticConcurrencyException(context, err);
-                    var response = Request.CreateResponse(HttpStatusCode.OK);
-                    response.Content = new StringContent("{}", Encoding.UTF8, "application/json");
-                    return response;
+                    return OnOptimisticConcurrencyException(context, err);
                 }
                 catch (Exception err)
                 {
                     OnException(err);
-                    return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, err.GenerateInfo(), err);
+                    return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, err.GenerateInfo());
                 }
             }
         }
-
 
         protected abstract DbContext CreateContext();
 
@@ -142,8 +139,7 @@ namespace TrackR.Controller.EF6
         {
             _assemblies.Add(typeof(string).Assembly);
         }
-
-
+        
         private void Reconstruct(EntityWrapper wrapper, List<EntityWrapper> entities)
         {
             foreach (var reference in wrapper.References)
