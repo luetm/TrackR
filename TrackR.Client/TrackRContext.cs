@@ -297,7 +297,11 @@ namespace TrackR.Client
                         }
 
                         var resolution = await HandleConcurrencyException(conflicts, changetSet);
-                        await CommitConflictResolution(resolution, changetSet);
+                        await CommitConflictResolution(resolution);
+                    }
+                    else if (result.StatusCode == HttpStatusCode.Gone)
+                    {
+                        await HandleResourceDeleted();
                     }
                     else
                     {
@@ -312,7 +316,9 @@ namespace TrackR.Client
             }
         }
 
-        
+        protected abstract Task HandleResourceDeleted();
+
+
         /// <summary>
         /// Rejects all changes and reverts to original.
         /// </summary>
@@ -380,6 +386,7 @@ namespace TrackR.Client
         {
             var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric)
                 .Where(e => e.State == ChangeState.Changed || e.State == ChangeState.Added || e.State == ChangeState.Deleted)
+                .Where(e => !(e.State == ChangeState.Deleted && GetId(e) == 0))
                 .ToList();
 
             var allEntities = EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList();
@@ -593,7 +600,7 @@ namespace TrackR.Client
         /// <param name="resolutions"></param>
         /// <param name="changeSet"></param>
         /// <returns></returns>
-        private Task CommitConflictResolution(IEnumerable<ConflictResolution> resolutions, ChangeSet changeSet)
+        private Task CommitConflictResolution(IEnumerable<ConflictResolution> resolutions)
         {
             foreach (var resolution in resolutions)
             {

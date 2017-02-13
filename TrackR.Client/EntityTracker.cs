@@ -20,7 +20,7 @@ namespace TrackR.Client
         /// <summary>
         /// Current state of the entity.
         /// </summary>
-        public ChangeState State { get; internal set; }
+        public ChangeState State { get; set; }
 
         /// <summary>
         /// Gets the entity object. For the generic variant use the generic variant of this class.

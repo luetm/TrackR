@@ -190,6 +190,60 @@ namespace TrackR.WebApi2
             }
         }
 
+        /// <summary>
+        /// Direct query over url.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="queryPath"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public async Task<TResult> HttpPostMultipartContent<TResult>(string queryPath, MultipartFormDataContent content)
+        {
+            using (var client = CreateHttpClient())
+            {
+                var uri = ToAbsoluteUri(queryPath, null, null);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("utf-8"));
+
+                if (AuthBehavior != null)
+                {
+                    var authHeader = AuthBehavior.GetHeader();
+                    client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
+                }
+
+                var message = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    Content = content,
+                    RequestUri = uri,
+                };
+                var response = await client.SendAsync(message);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, responseContent));
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var settings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                    ContractResolver = new JsonObservableCollectionConverter(true),
+                    MaxDepth = 100,
+                    Culture = CultureInfo.InvariantCulture,
+                };
+
+                var result = JsonConvert.DeserializeObject<TResult>(json, settings);
+                if (result is TEntityBase)
+                {
+                    Track(result as TEntityBase);
+                }
+                return result;
+            }
+        }
+
 
         /// <summary>
         /// Gets a TResult from a specified uri.
