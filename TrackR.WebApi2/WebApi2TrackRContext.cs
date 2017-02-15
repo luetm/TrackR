@@ -132,7 +132,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(true),
+                    ContractResolver = new JsonObservableCollectionConverter(),
                     MaxDepth = 100,
                     Culture = CultureInfo.InvariantCulture,
                 };
@@ -176,7 +176,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(true),
+                    ContractResolver = new JsonObservableCollectionConverter(),
                     MaxDepth = 100,
                     Culture = CultureInfo.InvariantCulture,
                 };
@@ -230,7 +230,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(true),
+                    ContractResolver = new JsonObservableCollectionConverter(),
                     MaxDepth = 100,
                     Culture = CultureInfo.InvariantCulture,
                 };
@@ -448,7 +448,7 @@ namespace TrackR.WebApi2
                 {
                     PreserveReferencesHandling = PreserveReferencesHandling.All,
                     TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(true),
+                    ContractResolver = new JsonObservableCollectionConverter(),
                     MaxDepth = 100,
                     Culture = CultureInfo.InvariantCulture,
                 };

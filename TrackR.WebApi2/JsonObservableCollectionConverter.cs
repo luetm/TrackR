@@ -14,11 +14,6 @@ namespace TrackR.WebApi2
 {
     public class JsonObservableCollectionConverter : DefaultContractResolver
     {
-        public JsonObservableCollectionConverter(bool shareCache) : base(shareCache)
-        {
-
-        }
-
         public override JsonContract ResolveContract(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ICollection<>))
