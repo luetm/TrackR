@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -78,7 +77,7 @@ namespace TrackR.WebApi2
             var success = await AuthBehavior.Login(username, password, uri.ToString());
             return success;
         }
-        
+
         /// <summary>
         /// Destroys all authentication information.
         /// </summary>
@@ -420,7 +419,7 @@ namespace TrackR.WebApi2
                 var method = StringToHttpMethod(verb);
                 var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
                 var message = new HttpRequestMessage(method, uri);
-                
+
                 if (verb != "GET")
                 {
                     if (parameter.BodyValue != null)
@@ -440,7 +439,10 @@ namespace TrackR.WebApi2
                 if (!response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
+                    var exception = TryParseException(content);
+                    if (exception == null)
+                        throw new WebException("{0}: {1}".FormatStatic(response.StatusCode, content));
+                    throw exception;
                 }
 
                 var jsonResult = await response.Content.ReadAsStringAsync();
@@ -470,6 +472,48 @@ namespace TrackR.WebApi2
                 }
                 return result;
             }
+        }
+
+        private Exception TryParseException(string content)
+        {
+            try
+            {
+                var settings = new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.All,
+                    TypeNameHandling = TypeNameHandling.None,
+                    ContractResolver = new JsonObservableCollectionConverter(),
+                    MaxDepth = 100,
+                    Culture = CultureInfo.InvariantCulture,
+                };
+                var error = JsonConvert.DeserializeObject<HttpError>(content, settings);
+                return new WebException(StringifyHttpError(error));
+            }
+            catch /* POKéMON */
+            {
+                return null;
+            }
+        }
+
+        private string StringifyHttpError(HttpError error)
+        {
+            var lines = new List<string>
+            {
+                "",
+                $"Type: {error.ExceptionType}",
+                $"Message: {error.Message}",
+                $"Exception-Message: {error.ExceptionMessage}",
+                $"Message-Detail: {error.MessageDetail}",
+                ""
+            };
+
+            if (error.InnerException != null)
+            {
+                lines.Add("Inner Exception:");
+                lines.Add(StringifyHttpError(error.InnerException));
+            }
+
+            return string.Join("\n", lines);
         }
 
 

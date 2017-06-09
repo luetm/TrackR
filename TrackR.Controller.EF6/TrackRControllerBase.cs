@@ -119,6 +119,7 @@ namespace TrackR.Controller.EF6
 
                     var response = Request.CreateResponse(HttpStatusCode.OK);
                     response.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                    OnSuccess(changeSet);
                     return response;
                 }
                 catch (DbUpdateConcurrencyException err)
@@ -139,6 +140,8 @@ namespace TrackR.Controller.EF6
         {
             _assemblies.Add(typeof(string).Assembly);
         }
+
+        protected virtual void OnSuccess(ChangeSet changeset) { }
         
         private void Reconstruct(EntityWrapper wrapper, List<EntityWrapper> entities)
         {

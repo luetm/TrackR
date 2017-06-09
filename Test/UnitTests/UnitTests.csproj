@@ -100,10 +100,6 @@
       <Project>{3a34f4f9-bb6c-41a8-86ef-db341ee93473}</Project>
       <Name>TrackR.Controller.EF6</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\TrackR.OData.v3\TrackR.OData.v3.csproj">
-      <Project>{b5d1a4e0-a370-4fce-88d1-102760eed29b}</Project>
-      <Name>TrackR.OData.V3</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\TrackR.Client\TrackR.Client.csproj">
       <Project>{aac679ee-c36c-4000-ada4-30aca842ed2f}</Project>
       <Name>TrackR</Name>

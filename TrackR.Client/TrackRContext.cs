@@ -386,7 +386,7 @@ namespace TrackR.Client
         {
             var entities = EntitySets.SelectMany(s => s.EntitiesNonGeneric)
                 .Where(e => e.State == ChangeState.Changed || e.State == ChangeState.Added || e.State == ChangeState.Deleted)
-                .Where(e => !(e.State == ChangeState.Deleted && GetId(e) == 0))
+                .Where(e => !(e.State == ChangeState.Deleted && GetId(e.GetEntity()) == 0))
                 .ToList();
 
             var allEntities = EntitySets.SelectMany(s => s.EntitiesNonGeneric).ToList();
