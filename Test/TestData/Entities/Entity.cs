@@ -3,7 +3,7 @@ using PropertyChanged;
 
 namespace TestData.Entities
 {
-    [ImplementPropertyChanged]
+    [AddINotifyPropertyChangedInterface]
     public class Entity : INotifyPropertyChanged
     {
         public int Id { get; set; }
