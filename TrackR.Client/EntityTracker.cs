@@ -103,11 +103,28 @@ namespace TrackR.Client
         public void OnEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var property = Entity.GetType().GetProperty(e.PropertyName);
-            if (property.GetCustomAttributes().OfType<DontTrackAttribute>().Any())
+            if (property?.GetCustomAttributes().OfType<DontTrackAttribute>().Any() ?? true)
                 return;
 
             if (State == ChangeState.Unchanged)
             {
+                try
+                {
+                    var eType = Entity?.GetType();
+                    var eProp = eType.GetProperty(e.PropertyName);
+                    var eVal = eProp?.GetValue(Entity);
+
+                    var oType = Original?.GetType();
+                    var oProp = oType?.GetProperty(e.PropertyName);
+                    var oVal = oProp?.GetValue(Original);
+
+                    // Entity Value == Original Value => no change!!!
+                    if ((eVal == null && oVal == null) ||
+                        (eVal != null && eVal.Equals(oVal)))
+                        return;
+                }
+                catch { /* Not now */ }
+
                 State = ChangeState.Changed;
             }
         }
