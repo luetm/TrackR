@@ -97,14 +97,13 @@ namespace TrackR.Controller.EF6
                     {
                         if (wrapper.ChangeState == ChangeState.Deleted)
                         {
-                            changeSet.Entities.Remove(wrapper);
                             continue;
                         }
 
                         context.Entry(wrapper.Entity).Reload();
                     }
 
-                    var settings = new JsonSerializerSettings
+                    var settings = new JsonSerializerSettings 
                     {
                         ContractResolver = new FlatJsonResolver(),
                         TypeNameHandling = TypeNameHandling.Objects,
@@ -114,7 +113,7 @@ namespace TrackR.Controller.EF6
                         Culture = CultureInfo.InvariantCulture,
                         StringEscapeHandling = StringEscapeHandling.Default,
                     };
-                    var json = JsonConvert.SerializeObject(changeSet, settings);
+                    var json = JsonConvert.SerializeObject(new ChangeSet { Entities = changeSet.Entities.Where(w => w.ChangeState != ChangeState.Deleted).ToList() }, settings);
                     OnPosted(json);
 
                     var response = Request.CreateResponse(HttpStatusCode.OK);
