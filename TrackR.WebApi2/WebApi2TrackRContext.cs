@@ -118,6 +118,7 @@ namespace TrackR.WebApi2
                     var authHeader = AuthBehavior.GetHeader();
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
+                AddCustomHeaders(client);
 
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
@@ -163,6 +164,8 @@ namespace TrackR.WebApi2
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
 
+                AddCustomHeaders(client);
+
                 var response = await client.GetAsync(uri);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -188,7 +191,7 @@ namespace TrackR.WebApi2
                 return result;
             }
         }
-
+        
         /// <summary>
         /// Direct query over url.
         /// </summary>
@@ -210,6 +213,7 @@ namespace TrackR.WebApi2
                     var authHeader = AuthBehavior.GetHeader();
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
+                AddCustomHeaders(client);
 
                 var message = new HttpRequestMessage
                 {
@@ -365,6 +369,7 @@ namespace TrackR.WebApi2
                     var authHeader = AuthBehavior.GetHeader();
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
+                AddCustomHeaders(client);
 
                 var method = StringToHttpMethod(verb);
                 var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
@@ -415,6 +420,7 @@ namespace TrackR.WebApi2
                     var authHeader = AuthBehavior.GetHeader();
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
+                AddCustomHeaders(client);
 
                 var method = StringToHttpMethod(verb);
                 var uri = ToAbsoluteUri(parameter.Path, parameter.UriParameters, null);
@@ -544,6 +550,7 @@ namespace TrackR.WebApi2
                     var authHeader = AuthBehavior.GetHeader();
                     client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                 }
+                AddCustomHeaders(client);
 
                 var result = await client.PostAsync(uri, new StringContent(json, Encoding.UTF8, "application/json"));
 

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Omu.ValueInjecter;
 using TrackR.Common;
 using TrackR.Common.Interfaces;
+using TrackR2.Core.Data;
 
 namespace TrackR.Client
 {
@@ -279,6 +280,7 @@ namespace TrackR.Client
                         var authHeader = AuthBehavior.GetHeader();
                         client.DefaultRequestHeaders.Add(authHeader.Item1, authHeader.Item2);
                     }
+                    AddCustomHeaders(client);
 
                     var result = await client.PostAsync(TrackRUri, new StringContent(json, Encoding.UTF8, "application/json"));
                     var responseContent = await result.Content.ReadAsStringAsync();
@@ -317,7 +319,7 @@ namespace TrackR.Client
         }
 
         protected abstract Task HandleResourceDeleted();
-
+        protected virtual void AddCustomHeaders(HttpClient client) { }
 
         /// <summary>
         /// Rejects all changes and reverts to original.
@@ -419,8 +421,14 @@ namespace TrackR.Client
                 Entity = entity.GetEntity(),
                 Guid = entity.Guid,
                 ChangeState = entity.State,
-                References = new List<EntityReference>()
+                References = new List<EntityReference>(),
             };
+
+            if (wrapper.ChangeState == ChangeState.Changed)
+            {
+                var changes = new EntityChanges(wrapper.Entity, entity.GetOriginal());
+                wrapper.ChangeLog = JsonConvert.SerializeObject(changes);
+            }
 
             wrappers.Add(wrapper);
 
@@ -584,7 +592,7 @@ namespace TrackR.Client
             }
         }
 
-        
+
         /// <summary>
         /// Handles conflict situation.
         /// </summary>

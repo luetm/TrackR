@@ -55,6 +55,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Luna\TrackR2.Core\TrackR2.Core.csproj">
+      <Project>{B85964C2-34F1-48F8-8864-3FB7939B5E8D}</Project>
+      <Name>TrackR2.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TrackR.Common\TrackR.Common.csproj">
       <Project>{f0e80dfd-8357-4a37-83ce-198065d677bb}</Project>
       <Name>TrackR.Common</Name>
