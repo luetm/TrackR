@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data.Services.Client;
 using System.Linq;
 using System.Reflection;
-using Omu.ValueInjecter;
 using Omu.ValueInjecter.Injections;
 using Omu.ValueInjecter.Utils;
 

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Omu.ValueInjecter;
 using TrackR.Common.DeepCloning;
-using TrackR.Common.DeepCloning.SmartConvention;
 
 namespace TrackR.Common
 {

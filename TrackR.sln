@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26206.0
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.Client", "TrackR.Client\TrackR.Client.csproj", "{AAC679EE-C36C-4000-ADA4-30ACA842ED2F}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.Common", "TrackR.Common\TrackR.Common.csproj", "{F0E80DFD-8357-4A37-83CE-198065D677BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.WebApi2", "TrackR.WebApi2\TrackR.WebApi2.csproj", "{2F6602D8-1D0B-4B89-A4BA-83595F3D8299}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR2.Core", "TrackR2.Core\TrackR2.Core.csproj", "{B85964C2-34F1-48F8-8864-3FB7939B5E8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{2F6602D8-1D0B-4B89-A4BA-83595F3D8299}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F6602D8-1D0B-4B89-A4BA-83595F3D8299}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F6602D8-1D0B-4B89-A4BA-83595F3D8299}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B85964C2-34F1-48F8-8864-3FB7939B5E8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B85964C2-34F1-48F8-8864-3FB7939B5E8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B85964C2-34F1-48F8-8864-3FB7939B5E8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B85964C2-34F1-48F8-8864-3FB7939B5E8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,5 +74,8 @@ Global
 		{0699DED8-B279-4151-A7BE-AE1ED1C89C5B} = {4B09340A-2A7A-4BBE-B890-ABD072744E6A}
 		{FF7D40BF-7902-43C2-9646-E9EEE8329182} = {4B09340A-2A7A-4BBE-B890-ABD072744E6A}
 		{E991DEF2-8309-46BA-A4D7-5C03412F2513} = {4B09340A-2A7A-4BBE-B890-ABD072744E6A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {311D23A3-0311-4A06-AA96-45A36FA6AB5D}
 	EndGlobalSection
 EndGlobal

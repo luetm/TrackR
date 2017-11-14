@@ -427,7 +427,9 @@ namespace TrackR.Client
             if (wrapper.ChangeState == ChangeState.Changed)
             {
                 var changes = new EntityChanges(wrapper.Entity, entity.GetOriginal());
-                wrapper.ChangeLog = JsonConvert.SerializeObject(changes);
+                // Only generate ChangeLog if entities are different
+                if (changes.IsDifferent)
+                    wrapper.ChangeLog = JsonConvert.SerializeObject(changes);
             }
 
             wrappers.Add(wrapper);
