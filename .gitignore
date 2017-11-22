@@ -110,6 +110,9 @@ AutoTest.Net/
 # Installshield output folder
 [Ee]xpress/
 
+# Misc
+TrackR2.Core/AppReadme/
+
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
 DocProject/Help/*.HxT
