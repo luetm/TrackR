@@ -70,7 +70,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Luna\TrackR2.Core\TrackR2.Core.csproj">
+    <ProjectReference Include="..\TrackR2.Core\TrackR2.Core.csproj">
       <Project>{b85964c2-34f1-48f8-8864-3fb7939b5e8d}</Project>
       <Name>TrackR2.Core</Name>
     </ProjectReference>
