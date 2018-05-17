@@ -138,10 +138,11 @@ namespace TrackR.Client
         /// Removes an entity from the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        public void Remove(TEntityBase entity)
+        /// <param name="abortIfUntracked"></param>
+        public void Remove(TEntityBase entity, bool abortIfUntracked = false)
         {
             var entitySet = GetEntitySet(entity);
-            entitySet.RemoveEntity(entity);
+            entitySet.RemoveEntity(entity, abortIfUntracked);
         }
 
         /// <summary>

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Data.Entity.Validation;
-using System.Linq;
 
 namespace TrackR.Common
 {
@@ -20,25 +18,6 @@ namespace TrackR.Common
                 result += $"Inner-Type: {inner.GetType().Name}\n";
                 result += $"Inner-Message: {inner.Message}\n";
                 inner = inner.InnerException;
-            }
-
-            if (err is DbEntityValidationException errValidation)
-            {
-                if (errValidation.EntityValidationErrors.Any())
-                {
-                    result += "EntityValidationErrors:\n";
-                    foreach (var validationError in errValidation.EntityValidationErrors)
-                    {
-                        var entityInfo = validationError.Entry.Entity.ToString();
-                        entityInfo = entityInfo.Contains("Id=") ? entityInfo : validationError.Entry.Entity.GetType().Name;
-                        result += $"Entity: {entityInfo}\n";
-
-                        foreach (var validationErrorError in validationError.ValidationErrors)
-                        {
-                            result += $"Property: {validationErrorError.PropertyName} - ErrorMessage: {validationErrorError.ErrorMessage}";
-                        }
-                    }
-                }
             }
 
             if (stacktrace)

@@ -30,7 +30,8 @@ namespace TrackR.Client
         /// Removes an entity from the collection. For the generic variant use the generic variant of this class.
         /// </summary>
         /// <param name="entity"></param>
-        public abstract void RemoveEntity(object entity);
+        /// <param name="abortIfUntracked"></param>
+        public abstract void RemoveEntity(object entity, bool abortIfUntracked = false);
 
         /// <summary>
         /// Start tracking an (attach). For the generic variant use the generic variant of this class.
@@ -129,7 +130,8 @@ namespace TrackR.Client
         /// Removes an entity from the collection. Non generic variant.
         /// </summary>
         /// <param name="entity"></param>
-        public override void RemoveEntity(object entity)
+        /// <param name="abortIfUntracked"></param>
+        public override void RemoveEntity(object entity, bool abortIfUntracked = false)
         {
             try
             {
@@ -137,6 +139,9 @@ namespace TrackR.Client
                 var tracker = Entities.FirstOrDefault(t => t.Entity.Equals(e));
                 if (tracker == null)
                 {
+                    if (abortIfUntracked)
+                        return;
+
                     Track(e);
                     tracker = Entities.First(t => t.Entity.Equals(e));
                 }

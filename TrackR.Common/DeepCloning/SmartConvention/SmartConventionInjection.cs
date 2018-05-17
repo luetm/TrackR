@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Omu.ValueInjecter.Injections;
+using Omu.ValueInjecter.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Services.Client;
 using System.Linq;
 using System.Reflection;
-using Omu.ValueInjecter.Injections;
-using Omu.ValueInjecter.Utils;
 
 namespace TrackR.Common.DeepCloning.SmartConvention
 {
@@ -27,11 +26,11 @@ namespace TrackR.Common.DeepCloning.SmartConvention
             if (prop.PropertyType.GenericTypeArguments.Any())
             {
                 var typeArg = prop.PropertyType.GenericTypeArguments[0];
-                var type = typeof(DataServiceCollection<>).MakeGenericType(typeArg);
-                if (prop.PropertyType == type)
-                {
-                    return;
-                }
+                //var type = typeof(DataServiceCollection<>).MakeGenericType(typeArg);
+                //if (prop.PropertyType == type)
+                //{
+                //    return;
+                //} // TODO
             }
             prop.SetValue(component, value);
 
