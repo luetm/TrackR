@@ -69,6 +69,10 @@
       <Project>{86512ea3-99fb-4271-8116-0a62069d4de3}</Project>
       <Name>TrackR.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TrackR.Standard\TrackR.Standard.csproj">
+      <Project>{1abc0ff8-8114-4adb-aba0-710573b63b94}</Project>
+      <Name>TrackR.Standard</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

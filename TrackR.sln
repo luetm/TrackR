@@ -11,7 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.WebApi2", "TrackR.We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR2.Core", "TrackR2.Core\TrackR2.Core.csproj", "{B85964C2-34F1-48F8-8864-3FB7939B5E8D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.Common", "TrackR.Common\TrackR.Common.csproj", "{86512EA3-99FB-4271-8116-0A62069D4DE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrackR.Common", "TrackR.Common\TrackR.Common.csproj", "{86512EA3-99FB-4271-8116-0A62069D4DE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackR.Standard", "TrackR.Standard\TrackR.Standard.csproj", "{1ABC0FF8-8114-4ADB-ABA0-710573B63B94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{86512EA3-99FB-4271-8116-0A62069D4DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86512EA3-99FB-4271-8116-0A62069D4DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86512EA3-99FB-4271-8116-0A62069D4DE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ABC0FF8-8114-4ADB-ABA0-710573B63B94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ABC0FF8-8114-4ADB-ABA0-710573B63B94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ABC0FF8-8114-4ADB-ABA0-710573B63B94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ABC0FF8-8114-4ADB-ABA0-710573B63B94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

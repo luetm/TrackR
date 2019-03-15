@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,7 +21,8 @@ namespace TrackR.Client
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
     /// </summary>
-    public abstract class TrackRContext<TEntityBase> where TEntityBase : class
+    public abstract class TrackRContext<TEntityBase> : IDisposable
+        where TEntityBase : class
     {
         /// <summary>
         /// Base uri of the context.
@@ -138,11 +140,10 @@ namespace TrackR.Client
         /// Removes an entity from the context. Set will be determined automatically.
         /// </summary>
         /// <param name="entity"></param>
-        /// <param name="abortIfUntracked"></param>
-        public void Remove(TEntityBase entity, bool abortIfUntracked = false)
+        public void Remove(TEntityBase entity)
         {
             var entitySet = GetEntitySet(entity);
-            entitySet.RemoveEntity(entity, abortIfUntracked);
+            entitySet.RemoveEntity(entity);
         }
 
         /// <summary>
@@ -272,7 +273,7 @@ namespace TrackR.Client
                     MaxDepth = 100,
                 };
                 var json = JsonConvert.SerializeObject(changetSet, settings);
-
+                
                 // Send the changeset to the server
                 using (var client = CreateHttpClient())
                 {
@@ -621,6 +622,22 @@ namespace TrackR.Client
             }
 
             return SubmitChangesAsync();
+        }
+
+        /// <summary>
+        /// Disposes disposable entities in sets
+        /// </summary>
+        public void Dispose()
+        {
+            var disposables = EntitySets.SelectMany(es => es.EntitiesNonGeneric)
+                .Select(w => w.GetEntity())
+                .OfType<IDisposable>()
+                .ToList();
+
+            foreach (var disposable in disposables)
+            {
+                disposable.Dispose();
+            }
         }
     }
 }

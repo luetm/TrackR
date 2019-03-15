@@ -10,7 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Interfaces\" />
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TrackR.Standard\TrackR.Standard.csproj" />
   </ItemGroup>
 
 </Project>

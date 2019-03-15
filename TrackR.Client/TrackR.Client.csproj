@@ -58,6 +58,10 @@
       <Project>{86512EA3-99FB-4271-8116-0A62069D4DE3}</Project>
       <Name>TrackR.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TrackR.Standard\TrackR.Standard.csproj">
+      <Project>{1abc0ff8-8114-4adb-aba0-710573b63b94}</Project>
+      <Name>TrackR.Standard</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TrackR2.Core\TrackR2.Core.csproj">
       <Project>{b85964c2-34f1-48f8-8864-3fb7939b5e8d}</Project>
       <Name>TrackR2.Core</Name>

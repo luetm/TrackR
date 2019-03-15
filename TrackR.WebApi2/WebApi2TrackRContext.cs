@@ -17,10 +17,19 @@ namespace TrackR.WebApi2
 {
     public abstract class WebApi2TrackRContext<TEntityBase> : TrackRContext<TEntityBase> where TEntityBase : class
     {
+        protected JsonSerializerSettings SerializationSettings = new JsonSerializerSettings
+        {
+            PreserveReferencesHandling = PreserveReferencesHandling.All,
+            TypeNameHandling = TypeNameHandling.Objects,
+            ContractResolver = new JsonObservableCollectionConverter(),
+            MaxDepth = 100,
+            Culture = CultureInfo.InvariantCulture,
+        };
+
         /// <summary>
         /// 
         /// </summary>
-        protected WebApi2TrackRContext() : base()
+        protected WebApi2TrackRContext()
         {
 
         }
@@ -65,8 +74,10 @@ namespace TrackR.WebApi2
             // appending the relative path to the absolute uri.
             if (!uri.IsAbsoluteUri)
             {
-                var builder = new UriBuilder(BaseUri);
-                builder.Path = uri.ToString();
+                var builder = new UriBuilder(BaseUri)
+                {
+                    Path = uri.ToString()
+                };
                 uri = builder.Uri;
             }
 
@@ -128,16 +139,7 @@ namespace TrackR.WebApi2
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var settings = new JsonSerializerSettings
-                {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(),
-                    MaxDepth = 100,
-                    Culture = CultureInfo.InvariantCulture,
-                };
-
-                var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, settings);
+                var result = JsonConvert.DeserializeObject<IEnumerable<TResult>>(json, SerializationSettings);
                 return result;
             }
         }
@@ -174,24 +176,16 @@ namespace TrackR.WebApi2
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var settings = new JsonSerializerSettings
+                var result = JsonConvert.DeserializeObject<TResult>(json, SerializationSettings);
+                var entity = result as TEntityBase;
+                if (entity != null)
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(),
-                    MaxDepth = 100,
-                    Culture = CultureInfo.InvariantCulture,
-                };
-
-                var result = JsonConvert.DeserializeObject<TResult>(json, settings);
-                if (result is TEntityBase)
-                {
-                    Track(result as TEntityBase);
+                    Track(entity);
                 }
                 return result;
             }
         }
-        
+
         /// <summary>
         /// Direct query over url.
         /// </summary>
@@ -229,19 +223,11 @@ namespace TrackR.WebApi2
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var settings = new JsonSerializerSettings
+                var result = JsonConvert.DeserializeObject<TResult>(json, SerializationSettings);
+                var entity = result as TEntityBase;
+                if (entity != null)
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(),
-                    MaxDepth = 100,
-                    Culture = CultureInfo.InvariantCulture,
-                };
-
-                var result = JsonConvert.DeserializeObject<TResult>(json, settings);
-                if (result is TEntityBase)
-                {
-                    Track(result as TEntityBase);
+                    Track(entity);
                 }
                 return result;
             }
@@ -257,7 +243,7 @@ namespace TrackR.WebApi2
         public async Task<TResult> GetAsync<TResult>(QueryParameter parameter)
         {
             if (parameter == null)
-                throw new ArgumentNullException("parameter");
+                throw new ArgumentNullException(nameof(parameter));
 
             return await HttpGetAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
@@ -271,7 +257,7 @@ namespace TrackR.WebApi2
         public Task<IEnumerable<TResult>> GetManyAsync<TResult>(QueryParameter parameter)
         {
             if (parameter == null)
-                throw new ArgumentNullException("parameter");
+                throw new ArgumentNullException(nameof(parameter));
 
             return HttpGetManyAsync<TResult>(parameter.Path, parameter.UriParameters);
         }
@@ -452,27 +438,19 @@ namespace TrackR.WebApi2
                 }
 
                 var jsonResult = await response.Content.ReadAsStringAsync();
-                var settings = new JsonSerializerSettings
+                var result = JsonConvert.DeserializeObject<TResult>(jsonResult, SerializationSettings);
+                var entity = result as TEntityBase;
+                if (entity != null)
                 {
-                    PreserveReferencesHandling = PreserveReferencesHandling.All,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                    ContractResolver = new JsonObservableCollectionConverter(),
-                    MaxDepth = 100,
-                    Culture = CultureInfo.InvariantCulture,
-                };
-
-                var result = JsonConvert.DeserializeObject<TResult>(jsonResult, settings);
-                if (result is TEntityBase)
-                {
-                    Track(result as TEntityBase);
+                    Track(entity);
                 }
-                if (result is IEnumerable)
+                if (result is IEnumerable enumerable)
                 {
-                    foreach (var r in (result as IEnumerable))
+                    foreach (var r in enumerable)
                     {
-                        if (r is TEntityBase)
+                        if (r is TEntityBase e)
                         {
-                            Track(r as TEntityBase);
+                            Track(e);
                         }
                     }
                 }
