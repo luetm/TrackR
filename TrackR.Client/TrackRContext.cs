@@ -21,8 +21,7 @@ namespace TrackR.Client
     /// <summary>
     /// Base class of specific (webapi, odata, ...) TrackR contexts.
     /// </summary>
-    public abstract class TrackRContext<TEntityBase> : IDisposable
-        where TEntityBase : class
+    public abstract class TrackRContext<TEntityBase> : IDisposable where TEntityBase : class
     {
         /// <summary>
         /// Base uri of the context.
@@ -42,9 +41,14 @@ namespace TrackR.Client
         {
             get
             {
-                return EntitySets
+                var sets = EntitySets
                     .SelectMany(e => e.EntitiesNonGeneric)
-                    .Any(e => e.State != ChangeState.Unchanged);
+                    .Where(e => e.State != ChangeState.Unchanged)
+                    .ToList();
+
+                var cs = BuildChangeSet();
+
+                return sets.Any();
             }
         }
 

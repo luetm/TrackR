@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -30,6 +32,16 @@ namespace TrackR.Common
             }
 
             return prop;
+        }
+        
+        public override JsonContract ResolveContract(Type type)
+        {
+            // Leaking: Luna validation proxies
+            if (type.Name.EndsWith("ValidationProxy"))
+            {
+                return base.ResolveContract(type.BaseType);
+            }
+            return base.ResolveContract(type);
         }
     }
 }
